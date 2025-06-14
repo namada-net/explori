@@ -1,23 +1,31 @@
-import { Box, Flex, Link, Heading } from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Box, Container, Flex, Stack } from "@chakra-ui/react";
+import { NamadaIcon } from "./NamadaIcon";
+import { Search } from "./Search";
 
-const Navbar = () => {
+export const Navbar = () => {
   return (
-    <Box bg="white" px={4} shadow="sm">
-      <Flex h={16} alignItems="center" justifyContent="space-between" maxW="1200px" mx="auto">
-        <Heading size="md" color="blue.600">
-          <Link as={RouterLink} to="/" _hover={{ textDecoration: 'none' }}>
+    <Box as="nav" borderBottom={1} borderStyle="solid" borderColor="gray.800">
+      <Container fluid>
+        <Stack
+          divideColor="red"
+          as="header"
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          h={16}
+          py={2}
+        >
+          <Flex color="yellow" fontSize="lg" alignItems="center" gap={3}>
+            <Box as="i" w={10}>
+              <NamadaIcon />
+            </Box>
             Namada Explorer
-          </Link>
-        </Heading>
-        <Flex gap={4}>
-          <Link as={RouterLink} to="/" color="gray.600" _hover={{ color: 'blue.600' }}>
-            Home
-          </Link>
-        </Flex>
-      </Flex>
+          </Flex>
+          <Box maxW="lg" flex="1">
+            <Search />
+          </Box>
+        </Stack>
+      </Container>
     </Box>
-  )
-}
-
-export default Navbar 
+  );
+};

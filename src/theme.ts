@@ -1,13 +1,15 @@
-import { extendTheme } from '@chakra-ui/react'
+import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
 
-const theme = extendTheme({
-  styles: {
-    global: {
-      body: {
-        bg: 'gray.50',
+const config = defineConfig({
+  globalCss: {},
+  theme: {
+    tokens: {
+      fonts: {
+        heading: { value: `"Space Grotesk Variable", sans-serif` },
+        body: { value: `"Space Grotesk Variable", sans-serif` },
       },
     },
   },
-})
+});
 
-export default theme 
+export default createSystem(defaultConfig, config);
