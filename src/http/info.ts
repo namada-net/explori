@@ -11,5 +11,5 @@ export const fetchAccountDetails = async (address: string) => {
 };
 
 export const fetchAccountTransactions = async (address: string) => {
-  return fetch(`/account/chain/history?addresses=${address}`);
+  return fetch(`/chain/history?addresses=${address}`);
 };

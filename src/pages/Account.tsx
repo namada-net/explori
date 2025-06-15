@@ -15,6 +15,7 @@ import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { toDisplayAmount } from "../utils";
 import type { Asset } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
+import { AccountTransactions } from "../components/AccountTransactions";
 
 type UserAsset = {
   address?: string;
@@ -287,15 +288,7 @@ export const Account = () => {
         </Box>
 
         {/* Recent Transactions Section */}
-        <Box bg="gray.800" p={6} rounded="md">
-          <Heading as="h2" size="md" mb={4}>
-            Recent Transactions
-          </Heading>
-          <Text color="gray.400">
-            Transaction history will be displayed here once the API integration
-            is complete.
-          </Text>
-        </Box>
+        <AccountTransactions address={address!} />
       </VStack>
     </Box>
   );
