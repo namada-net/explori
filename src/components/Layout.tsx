@@ -46,7 +46,7 @@ export const Layout = () => {
               icon={<FaPeopleGroup />}
             />
           </VStack>
-          <Box flex="1" py={5} px={8}>
+          <Box flex="1" pt={5} pb={12} px={8}>
             <Outlet />
           </Box>
         </Container>
