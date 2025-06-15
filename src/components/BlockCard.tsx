@@ -1,7 +1,6 @@
 import { useBlockInfo } from "../queries/useBlockInfo";
 import { Grid } from "@chakra-ui/react";
 import { Data } from "./Data";
-import { fromUnixTime } from "date-fns";
 import { useNavigate } from "react-router";
 import { blockUrl } from "../routes";
 import { formatTimestamp } from "../utils";
