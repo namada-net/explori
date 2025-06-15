@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   Box,
   Heading,
@@ -13,6 +14,9 @@ import {
 import { Table } from "@chakra-ui/react";
 import { useAccountTransactions } from "../queries/useAccountTransactions";
 import BigNumber from "bignumber.js";
+import { NAMADA_ADDRESS, toDisplayAmount } from "../utils";
+import { useChainAssetsMap } from "../queries/useChainAssetsMap";
+import type { Asset } from "@chain-registry/types";
 
 interface Tx {
   txId: string;
@@ -107,19 +111,21 @@ function getTransactionInfo(
   return amount ? { amount, sender, receiver } : undefined;
 }
 type AccountTransactionsProps = {
-  address: string;
+  address: string | undefined;
 };
 
 export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const transactionsPerPage = 10;
-
+  const { data: chainAssetsMap } = useChainAssetsMap();
+  const namadaAsset = chainAssetsMap[NAMADA_ADDRESS];
+  console.log(namadaAsset, "namada asset");
   const {
     data: transactionsData,
     isLoading,
     error,
     isFetching,
-  } = useAccountTransactions(address, currentPage, transactionsPerPage);
+  } = useAccountTransactions(address ?? "", currentPage, transactionsPerPage);
 
   const transactions = transactionsData?.results || [];
   const totalPages = Math.ceil(
@@ -200,7 +206,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
           </Table.Header>
           <Table.Body>
             {transactions.map((tx: Transaction) => {
-              const transactionInfo = getTransactionInfo(tx, address);
+              const transactionInfo = getTransactionInfo(tx, address ?? "");
               return (
                 <Table.Row key={tx.tx.txId}>
                   <Table.Cell>
@@ -245,7 +251,12 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                     </Link>
                   </Table.Cell>
                   <Table.Cell fontSize="sm" fontFamily="mono">
-                    {transactionInfo?.amount.toString() || "-"}
+                    {transactionInfo?.amount && namadaAsset
+                      ? toDisplayAmount(
+                          namadaAsset as Asset,
+                          BigNumber(transactionInfo.amount)
+                        ).toString()
+                      : "-"}
                   </Table.Cell>
                 </Table.Row>
               );
@@ -273,8 +284,8 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
             </Button>
             <Button
               size="sm"
-              variant="outline"
               backgroundColor="yellow"
+              color="black"
               onClick={handleNextPage}
               disabled={currentPage === totalPages || isFetching}
             >

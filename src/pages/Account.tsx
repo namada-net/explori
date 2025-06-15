@@ -287,8 +287,7 @@ export const Account = () => {
           </VStack>
         </Box>
 
-        {/* Recent Transactions Section */}
-        <AccountTransactions address={address!} />
+        <AccountTransactions address={address} />
       </VStack>
     </Box>
   );
