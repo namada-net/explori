@@ -12,7 +12,6 @@ import {
 } from "@chakra-ui/react";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 
-// Types for better type safety
 type UserAsset = {
   address?: string;
   denom?: string;
@@ -39,7 +38,6 @@ export const Account = () => {
     useChainAssetsMap();
   const isLoading = accountLoading || chainAssetsLoading;
 
-  // Process user's assets using useMemo for better performance
   const userAssets = useMemo((): UserAsset[] => {
     if (!account || !chainAssetsMap) return [];
 
@@ -48,7 +46,6 @@ export const Account = () => {
     // Process each token balance in the account
     account.forEach((accountAsset: AccountAsset) => {
       const chainAsset = chainAssetsMap[accountAsset.tokenAddress];
-      console.log(chainAsset, account, "dayyyy");
       if (chainAsset) {
         assetsWithDetails.push({
           ...chainAsset,
@@ -61,13 +58,10 @@ export const Account = () => {
     return assetsWithDetails;
   }, [account, chainAssetsMap]);
 
-  console.log(userAssets, "dayyyy");
-
   // Calculate total NAM balance from native token
   const nativeTokenBalance = useMemo(() => {
     if (!userAssets.length) return "0";
 
-    // Find the native token (usually NAM)
     const nativeAsset = userAssets.find(
       (asset) =>
         asset.symbol === "NAM" || asset.name?.toLowerCase().includes("namada")

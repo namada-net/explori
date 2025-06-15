@@ -11,7 +11,6 @@ export const Search = () => {
     e.preventDefault();
     if (searchValue.trim()) {
       // For now, we'll assume any search input is an account address
-      // In the future, this could be enhanced to detect different types of searches
       navigate(`/account/${searchValue.trim()}`);
     }
   };

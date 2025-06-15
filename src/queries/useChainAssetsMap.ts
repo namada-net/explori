@@ -3,27 +3,22 @@ import { useChainTokens } from "./useChainTokens";
 import namadaAssets from "@namada/chain-registry/namada/assetlist.json";
 import { useChainParameters } from "./useChainParameters";
 
-// Define types based on the original atom
 type Address = string;
 type Asset = {
   address?: string;
   denom?: string;
   symbol?: string;
   name?: string;
-  // Add other properties as needed
 };
 
 type NativeToken = {
   address: string;
-  // Add other properties as needed
 };
 
 type IbcToken = {
   address: string;
-  // Add other properties as needed
 };
 
-// Helper function to find asset by token
 const findAssetByToken = (
   token: NativeToken | IbcToken,
   assets: Asset[]
