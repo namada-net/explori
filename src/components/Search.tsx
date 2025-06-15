@@ -25,7 +25,7 @@ export const Search = () => {
     <form onSubmit={handleSubmit}>
       <InputGroup flex="1" startElement={<LuSearch />}>
         <Input
-          placeholder="Search by address, blocks or transactions hash"
+          placeholder="Search by address, block number or transaction hash"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           onKeyPress={handleKeyPress}
