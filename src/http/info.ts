@@ -5,11 +5,3 @@ export const fetchLatestBlock = async () => {
 export const fetchLatestEpoch = async () => {
   return fetch("/chain/epoch/latest");
 };
-
-export const fetchAccountDetails = async (address: string) => {
-  return fetch(`/account/${address}`);
-};
-
-export const fetchAccountTransactions = async (address: string) => {
-  return fetch(`/chain/history?addresses=${address}`);
-};
