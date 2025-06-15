@@ -7,7 +7,11 @@ type TransactionListProps = {
 
 export const TransactionList = ({ txHashes }: TransactionListProps) => {
   if (!txHashes || txHashes.length === 0) {
-    return <Text color="gray.500">No transactions available</Text>;
+    return (
+      <Text color="gray.500" fontSize="sm">
+        No transactions available
+      </Text>
+    );
   }
 
   return (

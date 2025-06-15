@@ -8,7 +8,13 @@ type PageLinkProps = {
 
 export const PageLink = ({ to, ...props }: PageLinkProps) => {
   return (
-    <ChakraLink textDecoration="none" color="current" {...props}>
+    <ChakraLink
+      textDecoration="none"
+      color="current"
+      outline={0}
+      {...props}
+      asChild
+    >
       <Link to={to}>{props.children}</Link>
     </ChakraLink>
   );

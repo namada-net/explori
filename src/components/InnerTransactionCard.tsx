@@ -20,7 +20,7 @@ export const InnerTransactionCard = ({
       px={4}
       rounded="sm"
       bg="gray.800"
-      borderLeft="4px solid"
+      borderLeft="2px solid"
       borderColor="yellow"
     >
       <Box bg="gray.800">

@@ -80,7 +80,9 @@ export const BlockDetails = () => {
               Transactions
             </Heading>
             {blockDetails.data?.transactions.length === 0 ? (
-              <Text color="gray.500">No transactions in this block</Text>
+              <Text color="gray.500" fontSize="sm">
+                No transactions in this block
+              </Text>
             ) : (
               <TransactionList txHashes={blockDetails.data?.transactions} />
             )}

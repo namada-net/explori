@@ -5,3 +5,8 @@ export type InnerTransaction = {
   memo: string;
   exitCode: string;
 };
+
+export type AccountResponse = Array<{
+  minDenomAmount: string;
+  tokenAddress: string;
+}>;
