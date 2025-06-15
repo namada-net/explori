@@ -48,10 +48,10 @@ type AccountTransactionsProps = {
   address: string | undefined;
 };
 
-function getTransactionInfo(
+const getTransactionInfo = (
   transaction: Transaction,
   transparentAddress: string
-): { amount: BigNumber; sender?: string; receiver?: string } | undefined {
+): { amount: BigNumber } | undefined => {
   const { tx } = transaction;
   if (!tx?.data) return undefined;
 
@@ -62,22 +62,6 @@ function getTransactionInfo(
     if (parsed.amount && parsed.source === transparentAddress) {
       return {
         amount: new BigNumber(parsed.amount),
-        sender: parsed.source,
-        receiver: parsed.validator, // The validator is the "receiver" for bonds
-      };
-    }
-    return undefined;
-  }
-
-  if (tx.kind === "claimRewards") {
-    // ClaimRewards doesn't have an amount in the transaction data
-    // The amount would come from the actual rewards claimed, which isn't in this data structure
-    // Return undefined for amount, but we can still track the validator and source
-    if (parsed.source === transparentAddress) {
-      return {
-        amount: new BigNumber(0), // Amount not available in transaction data
-        sender: parsed.source,
-        receiver: parsed.validator,
       };
     }
     return undefined;
@@ -92,59 +76,54 @@ function getTransactionInfo(
   const source = sections.find((s) => s.sources?.length);
 
   let amount: BigNumber | undefined;
-  let receiver: string | undefined;
 
-  if (tx.kind === "unshieldingTransfer") {
-    // For unshielding: get amount from targets where owner matches current address
-    if (target?.targets) {
-      const mainTarget = target.targets.find(
-        (target) => target.owner === transparentAddress
-      );
-      if (mainTarget) {
-        amount = new BigNumber(mainTarget.amount);
-        receiver = mainTarget.owner;
-      }
-    }
-  } else if (tx.kind === "ibcTransparentTransfer") {
-    // For IBC transfers: get amount from first source (cross-chain, owner won't match)
-    if (source?.sources && source.sources.length > 0) {
-      amount = new BigNumber(source.sources[0].amount);
-    }
+  // Check both sources and targets for matching owner address and return amount
+  let matchingEntry = null;
 
-    // Also get receiver from targets
-    if (target?.targets) {
-      const mainTarget = target.targets.find(
-        (target) => target.owner === transparentAddress
-      );
-      receiver = mainTarget?.owner;
-    }
-  } else if (
-    tx.kind === "transparentTransfer" ||
-    tx.kind === "shieldingTransfer"
-  ) {
-    // For transparent/shielding transfers: get amount from sources where owner matches current address
-    if (source?.sources) {
-      const mainSource = source.sources.find(
-        (source) => source.owner === transparentAddress
-      );
-      if (mainSource) {
-        amount = new BigNumber(mainSource.amount);
-      }
-    }
+  if (source?.sources) {
+    matchingEntry = source.sources.find(
+      (src) => src.owner === transparentAddress
+    );
+  }
 
-    // Also get receiver from targets
-    if (target?.targets) {
-      const mainTarget = target.targets.find(
-        (target) => target.owner === transparentAddress
-      );
-      receiver = mainTarget?.owner;
+  if (!matchingEntry && target?.targets) {
+    matchingEntry = target.targets.find(
+      (target) => target.owner === transparentAddress
+    );
+  }
+
+  if (matchingEntry) {
+    amount = new BigNumber(matchingEntry.amount);
+  }
+  return amount ? { amount } : undefined;
+};
+
+const getToken = (
+  txn: Transaction["tx"],
+  nativeToken: string
+): string | undefined => {
+  if (txn?.kind === "bond" || txn?.kind === "unbond") return nativeToken;
+  let parsed;
+  try {
+    parsed = txn?.data ? JSON.parse(txn.data) : undefined;
+  } catch (error) {
+    console.error("Failed to parse getToken data:", error);
+  }
+  if (!parsed) return undefined;
+  const sections = Array.isArray(parsed) ? parsed : [parsed];
+
+  // return the first token found in sources or targets
+  for (const section of sections) {
+    if (section.sources?.length) {
+      return section.sources[0].token;
+    }
+    if (section.targets?.length) {
+      return section.targets[0].token;
     }
   }
 
-  const sender = source?.sources?.[0]?.owner;
-
-  return amount ? { amount, sender, receiver } : undefined;
-}
+  return undefined;
+};
 
 export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -230,7 +209,9 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
               <Table.ColumnHeader color="gray.400">Type</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.400">Status</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.400">Block</Table.ColumnHeader>
-              <Table.ColumnHeader color="gray.400">Amount</Table.ColumnHeader>
+              <Table.ColumnHeader color="gray.400" textAlign="right">
+                Amount
+              </Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -238,6 +219,8 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
               .filter((tx: Transaction) => tx.tx.kind !== "claimRewards")
               .map((tx: Transaction) => {
                 const transactionInfo = getTransactionInfo(tx, address ?? "");
+                const token = getToken(tx.tx, NAMADA_ADDRESS);
+                const tokenSymbol = token ? chainAssetsMap[token]?.symbol : "";
                 return (
                   <Table.Row key={tx.tx.txId}>
                     <Table.Cell>
@@ -261,7 +244,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                         backgroundColor={
                           tx.tx.exitCode === "applied" ? "green.500" : "red.500"
                         }
-                        fontSize="xs"
+                        fontSize="sm"
                         textTransform="capitalize"
                       >
                         {tx.tx.exitCode}
@@ -276,13 +259,18 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                         {tx.blockHeight}
                       </Link>
                     </Table.Cell>
-                    <Table.Cell fontSize="sm" fontFamily="mono">
+                    <Table.Cell
+                      fontSize="sm"
+                      fontFamily="mono"
+                      textAlign="right"
+                    >
                       {transactionInfo?.amount && namadaAsset
                         ? toDisplayAmount(
                             namadaAsset as Asset,
                             BigNumber(transactionInfo.amount)
                           ).toString()
-                        : "-"}
+                        : "-"}{" "}
+                      {tokenSymbol}
                     </Table.Cell>
                   </Table.Row>
                 );
