@@ -10,7 +10,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { Hash } from "../components/Hash";
 import { TransactionList } from "../components/TransactionList";
 import { FaCubes } from "react-icons/fa6";
