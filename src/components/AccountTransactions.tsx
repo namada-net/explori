@@ -14,7 +14,11 @@ import {
 import { Table } from "@chakra-ui/react";
 import { useAccountTransactions } from "../queries/useAccountTransactions";
 import BigNumber from "bignumber.js";
-import { NAMADA_ADDRESS, toDisplayAmount } from "../utils";
+import {
+  NAMADA_ADDRESS,
+  shortenHashOrAddress,
+  toDisplayAmount,
+} from "../utils";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import type { Asset } from "@chain-registry/types";
 
@@ -27,27 +31,31 @@ interface Tx {
   exitCode: "applied" | "rejected";
 }
 
-// Main transaction type
 interface Transaction {
   tx: Tx;
   target: string;
   kind: string;
   blockHeight: number;
 }
+
 type RawDataSection = {
   amount?: string;
   sources?: Array<{ amount: string; owner: string }>;
   targets?: Array<{ amount: string; owner: string }>;
 };
 
+type AccountTransactionsProps = {
+  address: string | undefined;
+};
+
 function getTransactionInfo(
-  tx: Transaction,
+  transaction: Transaction,
   transparentAddress: string
 ): { amount: BigNumber; sender?: string; receiver?: string } | undefined {
-  if (!tx?.tx.data) return undefined;
+  const { tx } = transaction;
+  if (!tx?.data) return undefined;
 
-  const parsed =
-    typeof tx.tx.data === "string" ? JSON.parse(tx.tx.data) : tx.tx.data;
+  const parsed = typeof tx.data === "string" ? JSON.parse(tx.data) : tx.data;
   const sections: RawDataSection[] = Array.isArray(parsed) ? parsed : [parsed];
 
   if (sections.length === 0) return undefined;
@@ -58,8 +66,7 @@ function getTransactionInfo(
   let amount: BigNumber | undefined;
   let receiver: string | undefined;
 
-  // Apply the specific logic based on transaction type
-  if (tx.tx.kind === "unshieldingTransfer") {
+  if (tx.kind === "unshieldingTransfer") {
     // For unshielding: get amount from targets where owner matches current address
     if (target?.targets) {
       const mainTarget = target.targets.find(
@@ -70,7 +77,7 @@ function getTransactionInfo(
         receiver = mainTarget.owner;
       }
     }
-  } else if (tx.tx.kind === "ibcTransparentTransfer") {
+  } else if (tx.kind === "ibcTransparentTransfer") {
     // For IBC transfers: get amount from first source (cross-chain, owner won't match)
     if (source?.sources && source.sources.length > 0) {
       amount = new BigNumber(source.sources[0].amount);
@@ -84,8 +91,8 @@ function getTransactionInfo(
       receiver = mainTarget?.owner;
     }
   } else if (
-    tx.tx.kind === "transparentTransfer" ||
-    tx.tx.kind === "shieldingTransfer"
+    tx.kind === "transparentTransfer" ||
+    tx.kind === "shieldingTransfer"
   ) {
     // For transparent/shielding transfers: get amount from sources where owner matches current address
     if (source?.sources) {
@@ -110,16 +117,12 @@ function getTransactionInfo(
 
   return amount ? { amount, sender, receiver } : undefined;
 }
-type AccountTransactionsProps = {
-  address: string | undefined;
-};
 
 export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const transactionsPerPage = 10;
   const { data: chainAssetsMap } = useChainAssetsMap();
   const namadaAsset = chainAssetsMap[NAMADA_ADDRESS];
-  console.log(namadaAsset, "namada asset");
   const {
     data: transactionsData,
     isLoading,
@@ -139,10 +142,6 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  const truncateHash = (hash: string, length = 10) => {
-    return `${hash.slice(0, length)}...${hash.slice(-length)}`;
   };
 
   if (isLoading && currentPage === 1) {
@@ -216,7 +215,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                       fontSize="sm"
                       fontFamily="mono"
                     >
-                      {truncateHash(tx.tx.txId)}
+                      {shortenHashOrAddress(tx.tx.txId)}
                     </Link>
                   </Table.Cell>
                   <Table.Cell>
