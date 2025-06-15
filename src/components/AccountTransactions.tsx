@@ -9,7 +9,6 @@ import {
   Button,
   Spinner,
   Badge,
-  Link,
 } from "@chakra-ui/react";
 import { Table } from "@chakra-ui/react";
 import { useAccountTransactions } from "../queries/useAccountTransactions";
@@ -22,6 +21,8 @@ import {
 } from "../utils";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import type { Asset } from "@chain-registry/types";
+import { blockUrl, transactionUrl } from "../routes";
+import { Link } from "react-router";
 
 interface Tx {
   txId: string;
@@ -51,7 +52,7 @@ type AccountTransactionsProps = {
 
 const getTransactionInfo = (
   transaction: Transaction,
-  transparentAddress: string
+  transparentAddress: string,
 ): { amount: BigNumber } | undefined => {
   const { tx } = transaction;
   if (!tx?.data) return undefined;
@@ -83,13 +84,13 @@ const getTransactionInfo = (
 
   if (source?.sources) {
     matchingEntry = source.sources.find(
-      (src) => src.owner === transparentAddress
+      (src) => src.owner === transparentAddress,
     );
   }
 
   if (!matchingEntry && target?.targets) {
     matchingEntry = target.targets.find(
-      (target) => target.owner === transparentAddress
+      (target) => target.owner === transparentAddress,
     );
   }
 
@@ -101,7 +102,7 @@ const getTransactionInfo = (
 
 const getToken = (
   txn: Transaction["tx"],
-  nativeToken: string
+  nativeToken: string,
 ): string | undefined => {
   if (txn?.kind === "bond" || txn?.kind === "unbond") return nativeToken;
   let parsed;
@@ -141,7 +142,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
   const transactions = transactionsData?.results || [];
   const totalPages = Math.ceil(
     (transactionsData?.pagination.totalItems || 0) /
-      transactionsData?.pagination.perPage
+      transactionsData?.pagination.perPage,
   );
 
   const handlePreviousPage = () => {
@@ -225,13 +226,10 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                 return (
                   <Table.Row key={tx.tx.txId}>
                     <Table.Cell>
-                      <Link
-                        color="blue.400"
-                        href={`/tx/${tx.tx.txId}`}
-                        fontSize="sm"
-                        fontFamily="mono"
-                      >
-                        {shortenHashOrAddress(tx.tx.txId)}
+                      <Link to={transactionUrl(tx.tx.txId)}>
+                        <Box as="span" fontSize="sm">
+                          {shortenHashOrAddress(tx.tx.txId)}
+                        </Box>
                       </Link>
                     </Table.Cell>
                     <Table.Cell>{camelCaseToTitleCase(tx.tx.kind)}</Table.Cell>
@@ -248,11 +246,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                       </Badge>
                     </Table.Cell>
                     <Table.Cell>
-                      <Link
-                        color="blue.400"
-                        href={`/block/${tx.blockHeight}`}
-                        fontSize="sm"
-                      >
+                      <Link to={blockUrl(tx.blockHeight)}>
                         {tx.blockHeight}
                       </Link>
                     </Table.Cell>
@@ -265,7 +259,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                         namadaAsset &&
                         toDisplayAmount(
                           namadaAsset as Asset,
-                          BigNumber(transactionInfo.amount)
+                          BigNumber(transactionInfo.amount),
                         ).toString()}{" "}
                       {tokenSymbol}
                     </Table.Cell>

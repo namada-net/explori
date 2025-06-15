@@ -1,11 +1,11 @@
-import { Box, Container, Flex, VStack } from "@chakra-ui/react";
-import { FaCubes, FaHouse } from "react-icons/fa6";
+import { Box, Container, Flex, Separator, VStack } from "@chakra-ui/react";
+import { FaCubes, FaDiscord, FaHouse, FaTelegram } from "react-icons/fa6";
 import { Outlet } from "react-router";
 import { Navbar } from "./Navbar";
 import { MenuItem } from "./MenuItem";
-import { FaArrowRightArrowLeft } from "react-icons/fa6";
-import { FaMoneyCheckDollar } from "react-icons/fa6";
 import { FaPeopleGroup } from "react-icons/fa6";
+import { FaXTwitter } from "react-icons/fa6";
+import { NamadaIcon } from "./NamadaIcon";
 
 export const Layout = () => {
   return (
@@ -29,22 +29,39 @@ export const Layout = () => {
             gap={4}
           >
             <MenuItem label="Home" url="/" icon={<FaHouse />} />
-            <MenuItem
-              label="Transactions"
-              url="/transactions"
-              icon={<FaArrowRightArrowLeft />}
-            />
             <MenuItem label="Blocks" url="/blocks" icon={<FaCubes />} />
-            <MenuItem
-              label="Accounts"
-              url="/accounts"
-              icon={<FaMoneyCheckDollar />}
-            />
             <MenuItem
               label="Validators"
               url="/validators"
               icon={<FaPeopleGroup />}
             />
+            <Separator mr={6} />
+            <VStack gap={3} align="start" color="gray.300" fontSize="sm">
+              <MenuItem
+                label="Namada.net"
+                url="https://namada.net"
+                icon={
+                  <Box w="15px">
+                    <NamadaIcon />
+                  </Box>
+                }
+              />
+              <MenuItem
+                label="X.com"
+                url="https://x.com/namada"
+                icon={<FaXTwitter />}
+              />
+              <MenuItem
+                label="Discord"
+                url="https://discord.com/invite/namada"
+                icon={<FaDiscord />}
+              />
+              <MenuItem
+                label="Telegram"
+                url="https://t.me/namadaprotocol"
+                icon={<FaTelegram />}
+              />
+            </VStack>
           </VStack>
           <Box flex="1" pt={5} pb={12} px={8}>
             <Outlet />

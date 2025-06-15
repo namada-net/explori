@@ -23,7 +23,7 @@ export const OverviewCard = ({
       <Heading as="h3" size="sm">
         {title}
       </Heading>
-      <Flex w="100%" h="6" alignItems="center">
+      <Flex w="100%" h="6" alignItems="center" fontSize="sm">
         {isLoading ? (
           <SkeletonText
             variant="shine"

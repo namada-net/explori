@@ -35,12 +35,11 @@ export const BlockPagination = ({
 
         <Pagination.Items
           render={(page) => (
-            <IconButton variant={{ _selected: "surface" }}>
+            <IconButton _selected={{ bg: "yellow", color: "black" }}>
               {page.value}
             </IconButton>
           )}
         />
-
         <Pagination.NextTrigger asChild>
           <IconButton>
             <LuChevronRight />

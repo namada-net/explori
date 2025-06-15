@@ -9,7 +9,18 @@ import { Account } from "./pages/Account";
 import { Validators } from "./pages/Validators";
 import { ValidatorDetail } from "./pages/ValidatorDetail";
 import { Layout } from "./components/Layout";
+import { BlockDetails } from "./pages/BlockDetails";
+import {
+  accountUrl,
+  blocksUrl,
+  blockUrl,
+  transactionUrl,
+  validatorsUrl,
+  validatorUrl,
+} from "./routes";
 import theme from "./theme";
+import { TransactionDetails } from "./pages/TransactionDetails";
+import { Blocks } from "./pages/Blocks";
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
@@ -20,13 +31,16 @@ createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
-              <Route path="/account/:address" element={<Account />} />
-              <Route path="/validators" element={<Validators />} />
-              <Route path="/validator/:address" element={<ValidatorDetail />} />
+              <Route path={blocksUrl()} element={<Blocks />} />
+              <Route path={blockUrl()} element={<BlockDetails />} />
+              <Route path={accountUrl()} element={<Account />} />
+              <Route path={validatorsUrl()} element={<Validators />} />
+              <Route path={validatorUrl()} element={<ValidatorDetail />} />
+              <Route path={transactionUrl()} element={<TransactionDetails />} />
             </Route>
           </Routes>
         </BrowserRouter>
       </ChakraProvider>
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );

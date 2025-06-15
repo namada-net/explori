@@ -25,7 +25,7 @@ export const BlockList = ({
   };
 
   return (
-    <VStack gap={3} align="start" w="100%">
+    <VStack gap={2} align="start" w="100%">
       {renderBlocks(currentPage)}
       <BlockPagination
         lastBlockNumber={lastBlockNumber}

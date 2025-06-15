@@ -1,7 +1,11 @@
 import { useBlockInfo } from "../queries/useBlockInfo";
-import { Box, Grid } from "@chakra-ui/react";
+import { Grid } from "@chakra-ui/react";
 import { Data } from "./Data";
 import { fromUnixTime } from "date-fns";
+import { useNavigate } from "react-router";
+import { blockUrl } from "../routes";
+import { formatTimestamp } from "../utils";
+import { Hash } from "./Hash";
 
 type BlockCardProps = {
   blockHeight: number;
@@ -9,12 +13,12 @@ type BlockCardProps = {
 
 export const BlockCard = ({ blockHeight }: BlockCardProps) => {
   const block = useBlockInfo(blockHeight);
+  const navigate = useNavigate();
 
   if (block.isLoading && !block.data) {
     return <></>;
   }
 
-  const date = fromUnixTime(block.data?.timestamp);
   return (
     <Grid
       gap={4}
@@ -23,17 +27,19 @@ export const BlockCard = ({ blockHeight }: BlockCardProps) => {
       py={4}
       px={6}
       rounded="sm"
+      cursor="pointer"
       templateColumns="60% 1fr 1fr"
+      _hover={{ bg: "gray.700" }}
+      onClick={() => navigate(blockUrl(blockHeight))}
     >
       <Data
         title={`Block #${blockHeight}`}
-        content={
-          <Box color="gray.400" as="span">
-            {block.data?.hash}
-          </Box>
-        }
+        content={<Hash hash={block.data?.hash} />}
       />
-      <Data title="Created at" content={date.toLocaleString()} />
+      <Data
+        title="Created at"
+        content={formatTimestamp(block.data?.timestamp)}
+      />
       <Data
         title="Number of Txs"
         content={block.data?.transactions.length || 0}

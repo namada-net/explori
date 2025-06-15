@@ -1,5 +1,6 @@
 import type { Asset, AssetDenomUnit } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
+import { fromUnixTime, format } from "date-fns";
 
 export const camelCaseToTitleCase = (str: string) => {
   return str
@@ -19,7 +20,7 @@ const findDisplayUnit = (asset: Asset): AssetDenomUnit | undefined => {
 
 export const toDisplayAmount = (
   asset: Asset,
-  baseAmount: BigNumber
+  baseAmount: BigNumber,
 ): BigNumber => {
   const displayUnit = findDisplayUnit(asset);
   if (!displayUnit) {
@@ -27,4 +28,9 @@ export const toDisplayAmount = (
   }
 
   return baseAmount.shiftedBy(-displayUnit.exponent);
+};
+
+export const formatTimestamp = (timestamp: number): string => {
+  const time = fromUnixTime(timestamp);
+  return format(time, "PPpp");
 };
