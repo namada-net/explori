@@ -1,6 +1,12 @@
 import type { Asset, AssetDenomUnit } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
 
+export const camelCaseToTitleCase = (str: string) => {
+  return str
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (str) => str.toUpperCase());
+};
+
 export const NAMADA_ADDRESS = "tnam1q9gr66cvu4hrzm0sd5kmlnjje82gs3xlfg3v6nu7";
 
 export const shortenHashOrAddress = (hash: string, length = 10) => {

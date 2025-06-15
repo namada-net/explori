@@ -15,6 +15,7 @@ import { Table } from "@chakra-ui/react";
 import { useAccountTransactions } from "../queries/useAccountTransactions";
 import BigNumber from "bignumber.js";
 import {
+  camelCaseToTitleCase,
   NAMADA_ADDRESS,
   shortenHashOrAddress,
   toDisplayAmount,
@@ -233,11 +234,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                         {shortenHashOrAddress(tx.tx.txId)}
                       </Link>
                     </Table.Cell>
-                    <Table.Cell>
-                      {tx.tx.kind
-                        .replace(/([a-z])([A-Z])/g, "$1 $2")
-                        .replace(/^./, (str) => str.toUpperCase())}
-                    </Table.Cell>
+                    <Table.Cell>{camelCaseToTitleCase(tx.tx.kind)}</Table.Cell>
                     <Table.Cell>
                       <Badge
                         variant="subtle"

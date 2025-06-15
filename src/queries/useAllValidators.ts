@@ -25,7 +25,7 @@ export const useAllValidators = (
   }
 
   const queryString = queryParams.toString();
-  const url = `/api/v1/pos/validator${queryString ? `?${queryString}` : ""}`;
+  const url = `/pos/validator${queryString ? `?${queryString}` : ""}`;
 
   return useSimpleGet("validators", url);
 };
