@@ -264,12 +264,12 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                       fontFamily="mono"
                       textAlign="right"
                     >
-                      {transactionInfo?.amount && namadaAsset
-                        ? toDisplayAmount(
-                            namadaAsset as Asset,
-                            BigNumber(transactionInfo.amount)
-                          ).toString()
-                        : "-"}{" "}
+                      {transactionInfo?.amount &&
+                        namadaAsset &&
+                        toDisplayAmount(
+                          namadaAsset as Asset,
+                          BigNumber(transactionInfo.amount)
+                        ).toString()}{" "}
                       {tokenSymbol}
                     </Table.Cell>
                   </Table.Row>
