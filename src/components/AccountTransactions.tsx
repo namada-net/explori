@@ -56,6 +56,34 @@ function getTransactionInfo(
   if (!tx?.data) return undefined;
 
   const parsed = typeof tx.data === "string" ? JSON.parse(tx.data) : tx.data;
+
+  if (tx.kind === "bond" || tx.kind === "unbond") {
+    // Bond/unbond transactions have a flat structure with amount, validator, and source
+    if (parsed.amount && parsed.source === transparentAddress) {
+      return {
+        amount: new BigNumber(parsed.amount),
+        sender: parsed.source,
+        receiver: parsed.validator, // The validator is the "receiver" for bonds
+      };
+    }
+    return undefined;
+  }
+
+  if (tx.kind === "claimRewards") {
+    // ClaimRewards doesn't have an amount in the transaction data
+    // The amount would come from the actual rewards claimed, which isn't in this data structure
+    // Return undefined for amount, but we can still track the validator and source
+    if (parsed.source === transparentAddress) {
+      return {
+        amount: new BigNumber(0), // Amount not available in transaction data
+        sender: parsed.source,
+        receiver: parsed.validator,
+      };
+    }
+    return undefined;
+  }
+
+  // Handle transactions with sources/targets structure
   const sections: RawDataSection[] = Array.isArray(parsed) ? parsed : [parsed];
 
   if (sections.length === 0) return undefined;
@@ -172,6 +200,8 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
     );
   }
 
+  console.log(transactions, "transactions");
+
   if (!transactions || transactions.length === 0) {
     return (
       <Box bg="gray.800" p={6} rounded="md">
@@ -204,62 +234,59 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {transactions.map((tx: Transaction) => {
-              const transactionInfo = getTransactionInfo(tx, address ?? "");
-              return (
-                <Table.Row key={tx.tx.txId}>
-                  <Table.Cell>
-                    <Link
-                      color="blue.400"
-                      href={`/tx/${tx.tx.txId}`}
-                      fontSize="sm"
-                      fontFamily="mono"
-                    >
-                      {shortenHashOrAddress(tx.tx.txId)}
-                    </Link>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge
-                      variant="subtle"
-                      colorScheme="blue"
-                      fontSize="xs"
-                      textTransform="capitalize"
-                    >
-                      {tx.tx.kind}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge
-                      variant="subtle"
-                      backgroundColor={
-                        tx.tx.exitCode === "applied" ? "green.500" : "red.500"
-                      }
-                      fontSize="xs"
-                      textTransform="capitalize"
-                    >
-                      {tx.tx.exitCode}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Link
-                      color="blue.400"
-                      href={`/block/${tx.blockHeight}`}
-                      fontSize="sm"
-                    >
-                      {tx.blockHeight}
-                    </Link>
-                  </Table.Cell>
-                  <Table.Cell fontSize="sm" fontFamily="mono">
-                    {transactionInfo?.amount && namadaAsset
-                      ? toDisplayAmount(
-                          namadaAsset as Asset,
-                          BigNumber(transactionInfo.amount)
-                        ).toString()
-                      : "-"}
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
+            {transactions
+              .filter((tx: Transaction) => tx.tx.kind !== "claimRewards")
+              .map((tx: Transaction) => {
+                const transactionInfo = getTransactionInfo(tx, address ?? "");
+                return (
+                  <Table.Row key={tx.tx.txId}>
+                    <Table.Cell>
+                      <Link
+                        color="blue.400"
+                        href={`/tx/${tx.tx.txId}`}
+                        fontSize="sm"
+                        fontFamily="mono"
+                      >
+                        {shortenHashOrAddress(tx.tx.txId)}
+                      </Link>
+                    </Table.Cell>
+                    <Table.Cell>
+                      {tx.tx.kind
+                        .replace(/([a-z])([A-Z])/g, "$1 $2")
+                        .replace(/^./, (str) => str.toUpperCase())}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge
+                        variant="subtle"
+                        backgroundColor={
+                          tx.tx.exitCode === "applied" ? "green.500" : "red.500"
+                        }
+                        fontSize="xs"
+                        textTransform="capitalize"
+                      >
+                        {tx.tx.exitCode}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Link
+                        color="blue.400"
+                        href={`/block/${tx.blockHeight}`}
+                        fontSize="sm"
+                      >
+                        {tx.blockHeight}
+                      </Link>
+                    </Table.Cell>
+                    <Table.Cell fontSize="sm" fontFamily="mono">
+                      {transactionInfo?.amount && namadaAsset
+                        ? toDisplayAmount(
+                            namadaAsset as Asset,
+                            BigNumber(transactionInfo.amount)
+                          ).toString()
+                        : "-"}
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
           </Table.Body>
         </Table.Root>
       </Box>
