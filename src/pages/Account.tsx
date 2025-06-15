@@ -1,6 +1,7 @@
 import { useParams } from "react-router";
 import { useMemo } from "react";
 import { useAccount } from "../queries/useAccount";
+import namadaAssets from "@namada/chain-registry/namada/assetlist.json";
 import {
   Box,
   Heading,
@@ -11,6 +12,9 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
+import { toDisplayAmount } from "../utils";
+import type { Asset } from "@chain-registry/types";
+import BigNumber from "bignumber.js";
 
 type UserAsset = {
   address?: string;
@@ -136,7 +140,11 @@ export const Account = () => {
                   Balance
                 </Text>
                 <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                  {nativeTokenBalance} NAM
+                  {toDisplayAmount(
+                    namadaAssets.assets[0] as Asset,
+                    new BigNumber(nativeTokenBalance)
+                  ).toFixed(3)}{" "}
+                  NAM
                 </Text>
                 <Text fontSize="xs" color="gray.500">
                   Native Token
@@ -175,46 +183,54 @@ export const Account = () => {
                   Assets
                 </Heading>
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-                  {userAssets.map((asset, index) => (
-                    <Box
-                      key={asset.tokenAddress || index}
-                      bg="gray.900"
-                      p={4}
-                      rounded="md"
-                      border="1px"
-                      borderColor="gray.700"
-                    >
-                      <VStack align="start" gap={2}>
-                        <HStack justify="space-between" w="full">
-                          <Text fontWeight="semibold" fontSize="sm">
-                            {asset.symbol || asset.name || "Unknown Token"}
-                          </Text>
-                          <Text fontSize="xs" color="gray.400">
-                            {asset.denom && `(${asset.denom})`}
-                          </Text>
-                        </HStack>
+                  {userAssets.map((asset, index) => {
+                    console.log(asset, "asset");
+                    if (asset.balance === "0") return null;
+                    return (
+                      <Box
+                        key={asset.tokenAddress || index}
+                        bg="gray.900"
+                        p={4}
+                        rounded="md"
+                        border="1px"
+                        borderColor="gray.700"
+                      >
+                        <VStack align="start" gap={2}>
+                          <HStack justify="space-between" w="full">
+                            <Text fontWeight="semibold" fontSize="sm">
+                              {asset.symbol || asset.name || "Unknown Token"}
+                            </Text>
+                            <Text fontSize="xs" color="gray.400">
+                              {asset.denom && `(${asset.denom})`}
+                            </Text>
+                          </HStack>
 
-                        <Text fontSize="lg" fontWeight="bold" color="yellow">
-                          {asset.balance}
-                        </Text>
-
-                        {asset.name && asset.name !== asset.symbol && (
-                          <Text fontSize="xs" color="gray.500">
-                            {asset.name}
+                          <Text fontSize="lg" fontWeight="bold" color="yellow">
+                            {toDisplayAmount(
+                              chainAssetsMap[asset.tokenAddress] as Asset,
+                              new BigNumber(asset.balance)
+                            ).toNumber()}{" "}
+                            {asset.symbol}
                           </Text>
-                        )}
 
-                        <Text
-                          fontSize="xs"
-                          color="gray.600"
-                          fontFamily="mono"
-                          wordBreak="break-all"
-                        >
-                          {asset.tokenAddress}
-                        </Text>
-                      </VStack>
-                    </Box>
-                  ))}
+                          {asset.name && asset.name !== asset.symbol && (
+                            <Text fontSize="xs" color="gray.500">
+                              {asset.name}
+                            </Text>
+                          )}
+
+                          <Text
+                            fontSize="xs"
+                            color="gray.600"
+                            fontFamily="mono"
+                            wordBreak="break-all"
+                          >
+                            {asset.tokenAddress}
+                          </Text>
+                        </VStack>
+                      </Box>
+                    );
+                  })}
                 </SimpleGrid>
               </Box>
             )}
