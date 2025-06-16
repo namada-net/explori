@@ -1,17 +1,48 @@
-import { OverviewCard } from "../components/OverviewCard";
-import { Hash } from "../components/Hash";
-import { useTransaction } from "../queries/useTransaction";
-import { Text, Heading, Grid, Flex, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Grid,
+  Heading,
+  Spinner,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { FaArrowRightArrowLeft } from "react-icons/fa6";
 import { useParams } from "react-router";
 import { AccountLink } from "../components/AccountLink";
-import { TransactionStatusBadge } from "../components/TransactionStatusBadge";
+import { Hash } from "../components/Hash";
 import { InnerTransactionCard } from "../components/InnerTransactionCard";
+import { OverviewCard } from "../components/OverviewCard";
+import { TransactionStatusBadge } from "../components/TransactionStatusBadge";
+import { useTransaction } from "../queries/useTransaction";
 import type { InnerTransaction } from "../types";
-import { FaArrowRightArrowLeft } from "react-icons/fa6";
 
 export const TransactionDetails = () => {
   const { hash } = useParams();
   const transaction = useTransaction(hash || "");
+
+  if (transaction.isLoading) {
+    return (
+      <>
+        <VStack gap={4} align="center" py={8}>
+          <Spinner size="lg" />
+          <Text color="gray.400">Loading transaction...</Text>
+        </VStack>
+      </>
+    );
+  }
+
+  if (transaction.isError) {
+    return (
+      <Box bg="red.100" color="red.800" p={4} rounded="md">
+        <Text fontWeight="semibold">Error</Text>
+        <Text>
+          Failed to load transaction. Please check the address and try again.
+        </Text>
+        <Text>{transaction.error.message}</Text>
+      </Box>
+    );
+  }
 
   return (
     <>
