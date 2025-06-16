@@ -274,7 +274,7 @@ export const ValidatorDetail = () => {
                   <Text fontSize="sm" color="gray.400">
                     Rank
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow.400">
+                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
                     #{validator.rank || "-"}
                   </Text>
                 </Box>
@@ -283,7 +283,7 @@ export const ValidatorDetail = () => {
                   <Text fontSize="sm" color="gray.400">
                     Voting Power
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow.400">
+                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
                     {formatAmount(validator.votingPower)}
                   </Text>
                   <Text fontSize="xs" color="gray.500">
@@ -295,7 +295,7 @@ export const ValidatorDetail = () => {
                   <Text fontSize="sm" color="gray.400">
                     Commission
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow.400">
+                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
                     {validator.commission
                       ? `${parseFloat(validator.commission).toFixed(2)}%`
                       : "0%"}
@@ -306,7 +306,7 @@ export const ValidatorDetail = () => {
                   <Text fontSize="sm" color="gray.400">
                     Max Commission
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow.400">
+                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
                     {validator.maxCommission
                       ? `${parseFloat(validator.maxCommission).toFixed(2)}%`
                       : "0%"}
@@ -317,7 +317,7 @@ export const ValidatorDetail = () => {
                   <Text fontSize="sm" color="gray.400">
                     Delegators
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow.400">
+                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
                     {processedBonds.length}
                   </Text>
                 </Box>

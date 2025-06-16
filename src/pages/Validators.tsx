@@ -115,7 +115,6 @@ export const Validators = () => {
     );
   }
 
-  console.log(validators, "validators");
   const validatorsList = validators?.results || [];
   const totalValidators = validators?.pagination?.totalItems || 0;
   const currentPage = validators?.pagination?.currentPage || 1;
@@ -125,7 +124,7 @@ export const Validators = () => {
     <Box>
       <VStack gap={6} align="stretch">
         <Box>
-          <Heading as="h1" size="xl" mb={2}>
+          <Heading as="h1" size="xl" mb={2} color="cyan">
             Validators
           </Heading>
           <Text color="gray.400" fontSize="sm">
@@ -366,7 +365,7 @@ export const Validators = () => {
                           </Table.Cell>
                           <Table.Cell
                             textAlign="right"
-                            color="yellow.400"
+                            color="yellow"
                             fontWeight="semibold"
                           >
                             {validator.votingPower
