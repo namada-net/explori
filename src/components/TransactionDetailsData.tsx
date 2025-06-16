@@ -10,12 +10,12 @@ import { PageLink } from "./PageLink";
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const valueMap: Record<string, Function | undefined> = {
   validator: (address: string) => (
-    <PageLink to={validatorUrl(address)} _hover={{ color: "yellow" }}>
+    <PageLink to={validatorUrl(address)}>
       {shortenHashOrAddress(address)}
     </PageLink>
   ),
   source: (address: string) => (
-    <PageLink to={accountUrl(address)} _hover={{ color: "yellow" }}>
+    <PageLink to={accountUrl(address)}>
       {shortenHashOrAddress(address)}
     </PageLink>
   ),
@@ -26,9 +26,11 @@ const valueMap: Record<string, Function | undefined> = {
     }
     return <span>{value}</span>;
   },
-  owner: (value: string) => {
-    return <Hash hash={value} enableCopy={true} />;
-  },
+  owner: (address: string) => (
+    <PageLink to={accountUrl(address)}>
+      {shortenHashOrAddress(address)}
+    </PageLink>
+  ),
   token: (value: string) => {
     return <Hash hash={value} enableCopy={true} />;
   },

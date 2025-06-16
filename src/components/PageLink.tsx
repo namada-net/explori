@@ -12,6 +12,10 @@ export const PageLink = ({ to, ...props }: PageLinkProps) => {
       textDecoration="none"
       color="current"
       outline={0}
+      _hover={{
+        color: "yellow",
+        textDecoration: "underline",
+      }}
       {...props}
       asChild
     >

@@ -47,18 +47,12 @@ export const BlockDetails = () => {
           color="gray.300"
         >
           {currentBlock !== parseInt(latestBlock.data?.block) && (
-            <PageLink
-              to={blockUrl(currentBlock + 1)}
-              _hover={{ color: "yellow" }}
-            >
+            <PageLink to={blockUrl(currentBlock + 1)}>
               Next
             </PageLink>
           )}
           {currentBlock > 1 && (
-            <PageLink
-              to={blockUrl(currentBlock - 1)}
-              _hover={{ color: "yellow" }}
-            >
+            <PageLink to={blockUrl(currentBlock - 1)}>
               Previous
             </PageLink>
           )}

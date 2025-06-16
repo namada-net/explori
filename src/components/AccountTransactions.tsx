@@ -226,13 +226,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                       </Badge>
                     </Table.Cell>
                     <Table.Cell>
-                      <PageLink
-                        to={blockUrl(tx.blockHeight)}
-                        _hover={{
-                          color: "yellow",
-                          textDecoration: "underline",
-                        }}
-                      >
+                      <PageLink to={blockUrl(tx.blockHeight)}>
                         {tx.blockHeight}
                       </PageLink>
                     </Table.Cell>
