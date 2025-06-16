@@ -17,6 +17,10 @@ export const ValidatorInfo = ({
     });
   };
 
+  const formatPercentage = (value: string) => {
+    return `${(parseFloat(value) * 100).toFixed()}%`;
+  };
+
   return (
     <Grid templateColumns="1fr 1fr 1fr 1fr" gap={2}>
       <GridItem colSpan={2}>
@@ -29,13 +33,11 @@ export const ValidatorInfo = ({
         {formatAmount(validator.votingPower)} NAM
       </OverviewCard>
       <OverviewCard title="Commission">
-        {validator.commission
-          ? `${parseFloat(validator.commission).toFixed(2)}%`
-          : "0%"}
+        {validator.commission ? formatPercentage(validator.commission) : "0%"}
       </OverviewCard>
       <OverviewCard title="Max Commission">
         {validator.maxCommission
-          ? `${parseFloat(validator.maxCommission).toFixed(2)}%`
+          ? formatPercentage(validator.maxCommission)
           : "0%"}
       </OverviewCard>
       <OverviewCard title="Delegators">{numDelegators}</OverviewCard>

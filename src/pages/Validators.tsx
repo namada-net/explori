@@ -359,7 +359,7 @@ export const Validators = () => {
                       </Table.Cell>
                       <Table.Cell textAlign="right" color="gray.300">
                         {validator.commission
-                          ? `${parseFloat(validator.commission).toFixed(2)}%`
+                          ? `${(parseFloat(validator.commission) * 100).toFixed()}%`
                           : "0%"}
                       </Table.Cell>
                       <Table.Cell textAlign="center">
