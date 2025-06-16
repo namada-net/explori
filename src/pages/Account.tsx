@@ -9,7 +9,6 @@ import {
   VStack,
   Spinner,
   HStack,
-  SimpleGrid,
   Flex,
   Grid,
   GridItem,

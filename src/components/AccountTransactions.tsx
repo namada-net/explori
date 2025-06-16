@@ -12,7 +12,7 @@ import {
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import type { Asset } from "@chain-registry/types";
 import { blockUrl, transactionUrl } from "../routes";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { Pagination } from "./Pagination";
 import { Hash } from "./Hash";
 import { PageLink } from "./PageLink";
@@ -130,7 +130,6 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
     data: transactionsData,
     isLoading,
     error,
-    isFetching,
   } = useAccountTransactions(address ?? "", currentPage, transactionsPerPage);
 
   const transactions = transactionsData?.results || [];

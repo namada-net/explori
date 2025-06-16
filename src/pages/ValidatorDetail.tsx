@@ -1,4 +1,4 @@
-import { useParams, useNavigate, useLocation } from "react-router";
+import { useParams, useNavigate } from "react-router";
 {
   /* Validator Header */
 }
@@ -10,7 +10,6 @@ import {
   HStack,
   Button,
   Icon,
-  SimpleGrid,
   Skeleton,
 } from "@chakra-ui/react";
 
