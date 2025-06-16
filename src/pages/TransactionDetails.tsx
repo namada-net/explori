@@ -37,7 +37,7 @@ export const TransactionDetails = () => {
           {transaction.data?.amountPerGasUnit}
         </OverviewCard>
         <OverviewCard title="MASP Fee">
-          {transaction.data?.maspFeePayment || "N/A"}
+          {transaction.data?.maspFeePayment?.[1]?.sources?.[0]?.amount || "N/A"}
         </OverviewCard>
         <OverviewCard title="Block Height">
           {transaction.data?.blockHeight}
@@ -59,7 +59,7 @@ export const TransactionDetails = () => {
               key={innerTransaction.txId}
               innerTransaction={innerTransaction}
             />
-          ),
+          )
         )}
       </VStack>
     </>
