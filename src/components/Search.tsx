@@ -39,7 +39,7 @@ export const Search = () => {
   const [searchValue, setSearchValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [debouncedSearch] = useDebounce(searchValue, 500);
-  const search = useSearchValue(debouncedSearch);
+  const search = useSearchValue(debouncedSearch.toLowerCase());
   const emptyResults =
     search.isSuccess &&
     search.data.transactions.length +
