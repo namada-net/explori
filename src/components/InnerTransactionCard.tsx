@@ -2,9 +2,8 @@ import { Box, Grid, GridItem } from "@chakra-ui/react";
 import type { InnerTransaction } from "../types";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
-import { TransactionStatusBadge } from "./TransactionStatusBadge";
-import { TransactionDetails } from "../pages/TransactionDetails";
 import { TransactionDetailsData } from "./TransactionDetailsData";
+import { TransactionStatusBadge } from "./TransactionStatusBadge";
 
 type InnerTransactionCardProps = {
   innerTransaction: InnerTransaction;
@@ -24,6 +23,7 @@ export const InnerTransactionCard = ({
       bg="gray.800"
       borderLeft="2px solid"
       borderColor="yellow"
+      overflow="auto"
     >
       <Box bg="gray.800">
         <Data
@@ -43,7 +43,7 @@ export const InnerTransactionCard = ({
       <GridItem colSpan={3}>
         <Data title="Memo" content={innerTransaction.memo || "-"} />
       </GridItem>
-      <TransactionDetailsData json={JSON.parse(innerTransaction.data)} />
+      <TransactionDetailsData details={JSON.parse(innerTransaction.data)} />
     </Grid>
   );
 };

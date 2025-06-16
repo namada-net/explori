@@ -1,5 +1,6 @@
-import BigNumber from "bignumber.js";
 import type { Asset } from "@chain-registry/types";
+import { VStack } from "@chakra-ui/react";
+import BigNumber from "bignumber.js";
 import { accountUrl, validatorUrl } from "../routes";
 import { shortenHashOrAddress, toDisplayAmount } from "../utils";
 import { Data } from "./Data";
@@ -17,9 +18,12 @@ const valueMap: Record<string, Function | undefined> = {
       {shortenHashOrAddress(address)}
     </PageLink>
   ),
-  amount: (value: string, asset: Asset) => {
-    const amount = toDisplayAmount(asset, BigNumber(value));
-    return <span>{amount.toString()}</span>;
+  amount: (value: string, asset?: Asset) => {
+    if (asset) {
+      const amount = toDisplayAmount(asset, BigNumber(value));
+      return <span>{amount.toString()}</span>;
+    }
+    return <span>{value}</span>;
   },
 };
 
@@ -27,30 +31,44 @@ const keyMap = (key: string) => {
   return String(key).charAt(0).toUpperCase() + String(key).slice(1);
 };
 
-export const TransactionDetailsData = ({ json }: { json: unknown }) => {
-  const handleTransactionData = (key: string, value: string) => {
-    if (key in valueMap && valueMap[key]) {
-      return (
-        <Data title={keyMap(key)} content={valueMap[key]!(value)} key={key} />
-      );
-    }
-    return <Data title={keyMap(key)} content={value} />;
-  };
-
-  if (Array.isArray(json)) {
-    return json.map((item, index) => (
-      <TransactionDetailsData json={item} key={index} />
+export const TransactionDetailsData = ({ details }: { details: unknown }) => {
+  if (Array.isArray(details)) {
+    return details.map((item, index) => (
+      <TransactionDetailsData details={item} key={index} />
     ));
   }
 
-  if (typeof json === "object" && json !== null) {
-    return Object.keys(json).map((key) => {
-      if (typeof json === "object") {
-        const value = json[key as keyof typeof json];
-        return handleTransactionData(key, value);
-      }
-    });
+  if (typeof details === "object" && details !== null) {
+    return Object.entries(details).map(([key, value]) => (
+      <Data
+        key={key}
+        title={keyMap(key)}
+        content={
+          Array.isArray(value) ? (
+            <VStack>
+              {value.map((item) => (
+                <VStack
+                  key={JSON.stringify(item)}
+                  align="left"
+                  px={2}
+                  rounded="sm"
+                  borderLeft="2px solid"
+                  borderColor="white"
+                  overflow="auto"
+                >
+                  <TransactionDetailsData details={item} />
+                </VStack>
+              ))}
+            </VStack>
+          ) : valueMap[key] ? (
+            valueMap[key](value)
+          ) : (
+            value
+          )
+        }
+      />
+    ));
   }
 
-  return <></>;
+  return <Data content={details} />;
 };
