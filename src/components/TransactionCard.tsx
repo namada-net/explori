@@ -18,6 +18,7 @@ const allInnerTxApplied = (innerTransactions: InnerTransaction[]): string => {
     if (tx.exitCode === "applied") {
       appliedCount++;
     }
+
     if (tx.exitCode !== "applied") {
       return appliedCount > 0 ? "partial" : "failed";
     }
@@ -39,13 +40,13 @@ export const TransactionCard = ({ hash }: TransactionListProps) => {
 
   return (
     <Grid
-      gap={4}
+      gap={2}
       w="100%"
       bg="gray.800"
       py={4}
       px={6}
       rounded="sm"
-      templateColumns="40% 1fr 1fr 1fr 1fr"
+      templateColumns="3fr 1fr 1fr 1fr 1fr"
       cursor="pointer"
       _hover={{ bg: "gray.700" }}
       onClick={() => navigate(transactionUrl(hash))}

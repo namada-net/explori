@@ -3,6 +3,8 @@ import type { InnerTransaction } from "../types";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
 import { TransactionStatusBadge } from "./TransactionStatusBadge";
+import { TransactionDetails } from "../pages/TransactionDetails";
+import { TransactionDetailsData } from "./TransactionDetailsData";
 
 type InnerTransactionCardProps = {
   innerTransaction: InnerTransaction;
@@ -41,24 +43,7 @@ export const InnerTransactionCard = ({
       <GridItem colSpan={3}>
         <Data title="Memo" content={innerTransaction.memo || "-"} />
       </GridItem>
-      <GridItem colSpan={3}>
-        <Data
-          title="Data"
-          content={
-            <Box
-              fontFamily="monospace"
-              wordBreak="break-all"
-              color="gray.300"
-              bgColor="gray.900"
-              p={2}
-              rounded="sm"
-              fontSize="sm"
-            >
-              {innerTransaction.data}
-            </Box>
-          }
-        />
-      </GridItem>
+      <TransactionDetailsData json={JSON.parse(innerTransaction.data)} />
     </Grid>
   );
 };

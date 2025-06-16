@@ -19,8 +19,8 @@ export const TransactionDetails = () => {
         <Flex color="cyan" align="center" gap={2}>
           <FaArrowRightArrowLeft /> Transaction
         </Flex>
-        <Text fontSize="lg">
-          <Hash hash={hash || ""} enableCopy={true} />
+        <Text display="flex" fontSize="sm" alignItems="baseline" gap={1}>
+          Hash: <Hash hash={hash || ""} enableCopy={true} />
         </Text>
       </Heading>
       <Grid templateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={1}>
@@ -59,7 +59,7 @@ export const TransactionDetails = () => {
               key={innerTransaction.txId}
               innerTransaction={innerTransaction}
             />
-          )
+          ),
         )}
       </VStack>
     </>
