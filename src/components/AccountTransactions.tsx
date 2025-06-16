@@ -52,7 +52,7 @@ type AccountTransactionsProps = {
 
 const getTransactionInfo = (
   transaction: Transaction,
-  transparentAddress: string,
+  transparentAddress: string
 ): { amount: BigNumber } | undefined => {
   const { tx } = transaction;
   if (!tx?.data) return undefined;
@@ -84,13 +84,13 @@ const getTransactionInfo = (
 
   if (source?.sources) {
     matchingEntry = source.sources.find(
-      (src) => src.owner === transparentAddress,
+      (src) => src.owner === transparentAddress
     );
   }
 
   if (!matchingEntry && target?.targets) {
     matchingEntry = target.targets.find(
-      (target) => target.owner === transparentAddress,
+      (target) => target.owner === transparentAddress
     );
   }
 
@@ -102,7 +102,7 @@ const getTransactionInfo = (
 
 const getToken = (
   txn: Transaction["tx"],
-  nativeToken: string,
+  nativeToken: string
 ): string | undefined => {
   if (txn?.kind === "bond" || txn?.kind === "unbond") return nativeToken;
   let parsed;
@@ -142,7 +142,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
   const transactions = transactionsData?.results || [];
   const totalPages = Math.ceil(
     (transactionsData?.pagination.totalItems || 0) /
-      transactionsData?.pagination.perPage,
+      transactionsData?.pagination.perPage
   );
 
   const handlePreviousPage = () => {
@@ -180,8 +180,6 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
       </Box>
     );
   }
-
-  console.log(transactions, "transactions");
 
   if (!transactions || transactions.length === 0) {
     return (
@@ -224,15 +222,46 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                 const token = getToken(tx.tx, NAMADA_ADDRESS);
                 const tokenSymbol = token ? chainAssetsMap[token]?.symbol : "";
                 return (
-                  <Table.Row key={tx.tx.txId}>
+                  <Table.Row
+                    key={tx.tx.txId}
+                    border="1px solid"
+                    borderColor="gray.600"
+                    borderRadius="lg"
+                    mb={3}
+                    bg="gray.750"
+                    _hover={{
+                      bg: "gray.700",
+                      borderColor: "blue.400",
+                      transform: "translateY(-1px)",
+                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                    }}
+                    transition="all 0.2s ease-in-out"
+                    px={4}
+                    py={2}
+                  >
                     <Table.Cell>
                       <Link to={transactionUrl(tx.tx.txId)}>
-                        <Box as="span" fontSize="sm">
+                        <Box
+                          as="span"
+                          fontSize="sm"
+                          color="blue.400"
+                          _hover={{ color: "blue.300" }}
+                        >
                           {shortenHashOrAddress(tx.tx.txId)}
                         </Box>
                       </Link>
                     </Table.Cell>
-                    <Table.Cell>{camelCaseToTitleCase(tx.tx.kind)}</Table.Cell>
+                    <Table.Cell>
+                      <Badge
+                        variant="subtle"
+                        colorScheme="gray"
+                        fontSize="xs"
+                        textTransform="capitalize"
+                        fontWeight="medium"
+                      >
+                        {camelCaseToTitleCase(tx.tx.kind)}
+                      </Badge>
+                    </Table.Cell>
                     <Table.Cell>
                       <Badge
                         variant="subtle"
@@ -241,27 +270,40 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                         }
                         fontSize="sm"
                         textTransform="capitalize"
+                        borderRadius="full"
+                        px={3}
+                        py={1}
                       >
                         {tx.tx.exitCode}
                       </Badge>
                     </Table.Cell>
                     <Table.Cell>
                       <Link to={blockUrl(tx.blockHeight)}>
-                        {tx.blockHeight}
+                        <Box
+                          as="span"
+                          color="blue.400"
+                          _hover={{ color: "blue.300" }}
+                        >
+                          {tx.blockHeight}
+                        </Box>
                       </Link>
                     </Table.Cell>
                     <Table.Cell
                       fontSize="sm"
                       fontFamily="mono"
                       textAlign="right"
+                      color="yellow"
+                      fontWeight="semibold"
                     >
                       {transactionInfo?.amount &&
                         namadaAsset &&
                         toDisplayAmount(
                           namadaAsset as Asset,
-                          BigNumber(transactionInfo.amount),
+                          BigNumber(transactionInfo.amount)
                         ).toString()}{" "}
-                      {tokenSymbol}
+                      <Text as="span" color="gray.400" fontSize="xs">
+                        {tokenSymbol}
+                      </Text>
                     </Table.Cell>
                   </Table.Row>
                 );
