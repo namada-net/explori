@@ -40,21 +40,25 @@ const valueMap: Record<string, Function | undefined> = {
   token: (value: string) => {
     return <Hash hash={value} enableCopy={true} />;
   },
-  sources: (array: TransactionSource[]) =>
-    array.map((item) => {
-      const { owner, amount, token, ...rest } = item;
-      const { data: chainAssetsMap } = useChainAssetsMap();
-      return (
-        <ContentGroup key={JSON.stringify(item)}>
-          <Data title="Owner" content={valueMap.owner?.(owner)} />
-          <Data
-            title="Amount"
-            content={valueMap.amount?.(amount, chainAssetsMap[token])}
-          />
-          <TransactionDetailsData details={rest} />
-        </ContentGroup>
-      );
-    }),
+  sources: (array: TransactionSource[]) => (
+    <ContentArray
+      array={array}
+      Component={({ details }) => {
+        const { data: chainAssetsMap } = useChainAssetsMap();
+        const { owner, amount, token, ...rest } = details;
+        return (
+          <>
+            <Data title="Owner" content={valueMap.owner?.(owner)} />
+            <Data
+              title="Amount"
+              content={valueMap.amount?.(amount, chainAssetsMap[token])}
+            />
+            <TransactionDetailsData details={rest} />
+          </>
+        );
+      }}
+    />
+  ),
   // target and sources render the same
   targets: (array: TransactionTarget[]) => valueMap.sources?.(array),
   shielded_section_hash: (value: string) => {
@@ -67,17 +71,28 @@ const keyMap = (key: string) => {
   return String(key).charAt(0).toUpperCase() + String(key).slice(1);
 };
 
-const ContentGroup = ({ children }: { children: React.ReactNode }) => {
+const ContentArray = <T,>({
+  array,
+  Component,
+}: {
+  array: T[];
+  Component: React.FC<{ details: T }>;
+}) => {
   return (
-    <VStack
-      align="left"
-      px={2}
-      rounded="sm"
-      borderLeft="2px solid"
-      borderColor="white"
-      overflow="auto"
-    >
-      {children}
+    <VStack>
+      {array.map((item) => (
+        <VStack
+          key={JSON.stringify(item)}
+          align="left"
+          px={2}
+          rounded="sm"
+          borderLeft="2px solid"
+          borderColor="white"
+          overflow="auto"
+        >
+          <Component details={item} />
+        </VStack>
+      ))}
     </VStack>
   );
 };
@@ -98,9 +113,7 @@ export const TransactionDetailsData = ({ details }: { details: unknown }) => {
           valueMap[key] ? (
             valueMap[key](value)
           ) : Array.isArray(value) ? (
-            <ContentGroup>
-              <TransactionDetailsData details={value} />
-            </ContentGroup>
+            <ContentArray array={value} Component={TransactionDetailsData} />
           ) : (
             value
           )
