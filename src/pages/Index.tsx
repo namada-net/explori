@@ -19,7 +19,7 @@ export const Index = () => {
   return (
     <VStack gap={8} align="start">
       <Box>
-        <Heading as="h1" size="xl" mb={2}>
+        <Heading as="h1" size="xl" mb={3}>
           <Flex gap={2} align="center" color="cyan">
             <FaListAlt />
             Overview
@@ -35,7 +35,7 @@ export const Index = () => {
         </HStack>
       </Box>
       <Box w="100%">
-        <Heading as="h1" size="xl" mb={2} color="cyan">
+        <Heading as="h1" size="xl" mb={3} color="cyan">
           <Flex gap={2} align="center">
             <FaCubes />
             Latest blocks

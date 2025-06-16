@@ -35,7 +35,7 @@ export const Pagination = ({
       mt={4}
     >
       <ButtonGroup attached variant="outline" size="md">
-        <ChakraPagination.PrevTrigger>
+        <ChakraPagination.PrevTrigger asChild>
           <IconButton {...props} disabled={currentPage <= 1}>
             Previous
           </IconButton>
@@ -56,7 +56,7 @@ export const Pagination = ({
             </IconButton>
           )}
         />
-        <ChakraPagination.NextTrigger>
+        <ChakraPagination.NextTrigger asChild>
           <IconButton {...props} disabled={currentPage >= count / pageSize}>
             Next
           </IconButton>
