@@ -37,7 +37,9 @@ export const Hash = ({ hash, enableCopy }: HashProps) => {
       onClick={handleCopy}
       overflow="auto"
     >
-      <Box overflow="auto">{shortenHashOrAddress(hash, 20)}</Box>
+      <Box as="span" overflow="auto">
+        {shortenHashOrAddress(hash, 20)}
+      </Box>
       {enableCopy && (
         <Box as="span" ml={2} cursor="pointer" title="Copy to clipboard">
           {copied ? <FaCheck /> : <FaCopy />}

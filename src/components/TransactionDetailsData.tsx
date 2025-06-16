@@ -1,7 +1,9 @@
 import type { Asset } from "@chain-registry/types";
 import { VStack } from "@chakra-ui/react";
 import BigNumber from "bignumber.js";
+import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { accountUrl, validatorUrl } from "../routes";
+import type { TransactionSource, TransactionTarget } from "../types";
 import { shortenHashOrAddress, toDisplayAmount } from "../utils";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
@@ -22,7 +24,11 @@ const valueMap: Record<string, Function | undefined> = {
   amount: (value: string, asset?: Asset) => {
     if (asset) {
       const amount = toDisplayAmount(asset, BigNumber(value));
-      return <span>{amount.toString()}</span>;
+      return (
+        <span>
+          {amount.toString()} {asset.symbol}
+        </span>
+      );
     }
     return <span>{value}</span>;
   },
@@ -34,22 +40,53 @@ const valueMap: Record<string, Function | undefined> = {
   token: (value: string) => {
     return <Hash hash={value} enableCopy={true} />;
   },
+  sources: (array: TransactionSource[]) =>
+    array.map((item) => {
+      const { owner, amount, token, ...rest } = item;
+      const { data: chainAssetsMap } = useChainAssetsMap();
+      return (
+        <ContentGroup key={JSON.stringify(item)}>
+          <Data title="Owner" content={valueMap.owner?.(owner)} />
+          <Data
+            title="Amount"
+            content={valueMap.amount?.(amount, chainAssetsMap[token])}
+          />
+          <TransactionDetailsData details={rest} />
+        </ContentGroup>
+      );
+    }),
+  // target and sources render the same
+  targets: (array: TransactionTarget[]) => valueMap.sources?.(array),
   shielded_section_hash: (value: string) => {
     return <>{JSON.stringify(value)}</>;
   },
 };
 
 const keyMap = (key: string) => {
+  key = key.replace(/_/g, " ");
   return String(key).charAt(0).toUpperCase() + String(key).slice(1);
+};
+
+const ContentGroup = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <VStack
+      align="left"
+      px={2}
+      rounded="sm"
+      borderLeft="2px solid"
+      borderColor="white"
+      overflow="auto"
+    >
+      {children}
+    </VStack>
+  );
 };
 
 export const TransactionDetailsData = ({ details }: { details: unknown }) => {
   if (Array.isArray(details)) {
-    return details
-      .sort()
-      .map((item, index) => (
-        <TransactionDetailsData details={item} key={index} />
-      ));
+    return details.map((item, index) => (
+      <TransactionDetailsData details={item} key={index} />
+    ));
   }
 
   if (typeof details === "object" && details !== null) {
@@ -61,21 +98,9 @@ export const TransactionDetailsData = ({ details }: { details: unknown }) => {
           valueMap[key] ? (
             valueMap[key](value)
           ) : Array.isArray(value) ? (
-            <>
-              {value.map((item) => (
-                <VStack
-                  key={JSON.stringify(item)}
-                  align="left"
-                  px={2}
-                  rounded="sm"
-                  borderLeft="2px solid"
-                  borderColor="white"
-                  overflow="auto"
-                >
-                  <TransactionDetailsData details={item} />
-                </VStack>
-              ))}
-            </>
+            <ContentGroup>
+              <TransactionDetailsData details={value} />
+            </ContentGroup>
           ) : (
             value
           )

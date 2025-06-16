@@ -26,3 +26,17 @@ export type AccountResponse = Array<{
   minDenomAmount: string;
   tokenAddress: string;
 }>;
+
+export type TransactionSource = {
+  amount: string;
+  owner: string;
+  token: string;
+  type: string;
+};
+
+export type TransactionTarget = {
+  amount: string;
+  owner: string;
+  token: string;
+  type: string;
+};

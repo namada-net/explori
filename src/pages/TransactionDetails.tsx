@@ -50,9 +50,9 @@ export const TransactionDetails = () => {
         <Flex color="cyan" align="center" gap={2}>
           <FaArrowRightArrowLeft /> Transaction
         </Flex>
-        <Text display="flex" fontSize="sm" alignItems="baseline" gap={1}>
+        <Box display="flex" fontSize="sm" alignItems="baseline" gap={1}>
           Hash: <Hash hash={hash || ""} enableCopy={true} />
-        </Text>
+        </Box>
       </Heading>
       <Grid templateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={1}>
         <OverviewCard title="Fee Payer">
