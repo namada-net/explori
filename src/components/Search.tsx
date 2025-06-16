@@ -109,6 +109,7 @@ export const Search = () => {
                   </Box>
                   <Text>
                     Account:
+                    <br />
                     {account}
                   </Text>
                 </SearchResult>

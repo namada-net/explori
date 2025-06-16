@@ -7,7 +7,7 @@ export const accountUrl = (address: string = ":address") =>
   `/account/${address}`;
 
 export const validatorUrl = (address: string = ":address") =>
-  `/validator/${address}`;
+  `/validators/${address}`;
 
 export const validatorsUrl = () => "/validators";
 

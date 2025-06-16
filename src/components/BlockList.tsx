@@ -1,7 +1,7 @@
 import { VStack } from "@chakra-ui/react";
 import { BlockCard } from "./BlockCard";
 import { useState } from "react";
-import { BlockPagination } from "./BlockPagination";
+import { Pagination } from "./Pagination";
 
 type BlockListProps = {
   lastBlockNumber: number;
@@ -27,10 +27,10 @@ export const BlockList = ({
   return (
     <VStack gap={2} align="start" w="100%">
       {renderBlocks(currentPage)}
-      <BlockPagination
-        lastBlockNumber={lastBlockNumber}
-        blocksPerPage={blocksPerPage}
+      <Pagination
+        count={lastBlockNumber}
         currentPage={currentPage}
+        pageSize={blocksPerPage}
         onPageChange={(page) => setCurrentPage(page)}
       />
     </VStack>

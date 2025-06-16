@@ -10,12 +10,19 @@ import {
   Spinner,
   HStack,
   SimpleGrid,
+  Flex,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { toDisplayAmount } from "../utils";
 import type { Asset } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
 import { AccountTransactions } from "../components/AccountTransactions";
+import { FaWallet } from "react-icons/fa6";
+import { OverviewCard } from "../components/OverviewCard";
+import { Hash } from "../components/Hash";
+import { useAccountTransactions } from "../queries/useAccountTransactions";
 
 type UserAsset = {
   address?: string;
@@ -39,9 +46,14 @@ export const Account = () => {
     isLoading: accountLoading,
     error: accountError,
   } = useAccount(address!);
+
   const { data: chainAssetsMap, isLoading: chainAssetsLoading } =
     useChainAssetsMap();
+
+  const { data: transactionsData } = useAccountTransactions(address ?? "");
+
   const isLoading = accountLoading || chainAssetsLoading;
+  const totalTransactionCount = transactionsData?.pagination.totalItems || 0;
 
   const userAssets = useMemo((): UserAsset[] => {
     if (!account || !chainAssetsMap) return [];
@@ -69,7 +81,7 @@ export const Account = () => {
 
     const nativeAsset = userAssets.find(
       (asset) =>
-        asset.symbol === "NAM" || asset.name?.toLowerCase().includes("namada")
+        asset.symbol === "NAM" || asset.name?.toLowerCase().includes("namada"),
     );
 
     return nativeAsset?.balance || "0";
@@ -106,135 +118,98 @@ export const Account = () => {
   }
 
   return (
-    <Box>
-      <VStack gap={6} align="stretch">
-        <Box>
-          <Heading as="h1" size="xl" mb={2}>
-            Account Details
+    <>
+      <Heading as="h1" size="xl" color="cyan" mb={3}>
+        <Flex gap={2} align="center">
+          <FaWallet />
+          Account Details
+        </Flex>
+      </Heading>
+
+      <VStack gap={8} align="stretch">
+        <Grid templateColumns="1fr 1fr 1fr 1fr 1fr" gap={2}>
+          <GridItem colSpan={2}>
+            <OverviewCard title="Address">
+              <Hash hash={address || "-"} enableCopy />
+            </OverviewCard>
+          </GridItem>
+          <OverviewCard title="Balance (Native Token)">
+            {toDisplayAmount(
+              namadaAssets.assets[0] as Asset,
+              new BigNumber(nativeTokenBalance),
+            ).toFixed(3)}{" "}
+            NAM
+          </OverviewCard>
+          <OverviewCard title="Transaction Count">
+            {totalTransactionCount || 0}
+          </OverviewCard>
+          <OverviewCard title="Total Assets">
+            {userAssets.filter((asset) => asset.balance !== "0").length}
+          </OverviewCard>
+        </Grid>
+
+        <VStack gap={3} align="start">
+          <Heading as="h2" size="lg" color="white">
+            User Assets
           </Heading>
-          <Text color="gray.400" fontSize="sm" wordBreak="break-all">
-            {address}
-          </Text>
-        </Box>
-
-        <Box bg="gray.800" p={6} rounded="md">
-          <VStack gap={6} align="stretch">
-            <HStack justify="space-between" align="center">
-              <Heading as="h2" size="md">
-                Overview
-              </Heading>
-              <Box
-                bg="green.100"
-                color="green.800"
-                px={3}
-                py={1}
-                rounded="full"
-                fontSize="sm"
-              >
-                Active
-              </Box>
-            </HStack>
-
-            <HStack gap={8}>
-              <Box>
-                <Text fontSize="sm" color="gray.400">
-                  Balance
-                </Text>
-                <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                  {toDisplayAmount(
-                    namadaAssets.assets[0] as Asset,
-                    new BigNumber(nativeTokenBalance)
-                  ).toFixed(3)}{" "}
-                  NAM
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  Native Token
-                </Text>
-              </Box>
-
-              <Box>
-                <Text fontSize="sm" color="gray.400">
-                  Transaction Count
-                </Text>
-                <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                  {account.transactionCount || "0"}
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  Total transactions
-                </Text>
-              </Box>
-
-              <Box>
-                <Text fontSize="sm" color="gray.400">
-                  Total Assets
-                </Text>
-                <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                  {userAssets.length}
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  Token types
-                </Text>
-              </Box>
-            </HStack>
-
+          <Grid
+            templateColumns={{
+              base: "1fr",
+              md: "1fr 1fr",
+              lg: "1fr 1fr 1fr 1fr",
+            }}
+            gap={2}
+          >
             {/* Assets List */}
-            {userAssets.length > 0 && (
-              <Box>
-                <Heading as="h3" size="sm" mb={4} color="gray.300">
-                  Assets
-                </Heading>
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-                  {userAssets.map((asset, index) => {
-                    console.log(asset, "asset");
-                    if (asset.balance === "0") return null;
-                    return (
-                      <Box
-                        key={asset.tokenAddress || index}
-                        bg="gray.900"
-                        p={4}
-                        rounded="md"
-                        border="1px"
-                        borderColor="gray.700"
+            {userAssets.length > 0 &&
+              userAssets.map((asset) => {
+                if (asset.balance === "0") return null;
+                return (
+                  <Box
+                    key={asset.tokenAddress}
+                    bg="gray.950"
+                    p={4}
+                    rounded="sm"
+                  >
+                    <VStack align="start" gap={2}>
+                      <HStack justify="space-between" w="full">
+                        <Text
+                          color="yellow"
+                          fontWeight="semibold"
+                          fontSize="sm"
+                        >
+                          {asset.symbol || asset.name || "Unknown Token"}
+                        </Text>
+                        <Text fontSize="xs" color="gray.400">
+                          {asset.denom && `(${asset.denom})`}
+                        </Text>
+                      </HStack>
+
+                      <Text fontSize="lg">
+                        {toDisplayAmount(
+                          chainAssetsMap[asset.tokenAddress] as Asset,
+                          new BigNumber(asset.balance),
+                        ).toNumber()}{" "}
+                        {asset.symbol}
+                      </Text>
+
+                      {asset.name && asset.name !== asset.symbol && (
+                        <Text fontSize="sm" color="gray.400">
+                          {asset.name}
+                        </Text>
+                      )}
+                      <Text
+                        fontSize="xs"
+                        color="gray.600"
+                        fontFamily="mono"
+                        wordBreak="break-all"
                       >
-                        <VStack align="start" gap={2}>
-                          <HStack justify="space-between" w="full">
-                            <Text fontWeight="semibold" fontSize="sm">
-                              {asset.symbol || asset.name || "Unknown Token"}
-                            </Text>
-                            <Text fontSize="xs" color="gray.400">
-                              {asset.denom && `(${asset.denom})`}
-                            </Text>
-                          </HStack>
-
-                          <Text fontSize="lg" fontWeight="bold" color="yellow">
-                            {toDisplayAmount(
-                              chainAssetsMap[asset.tokenAddress] as Asset,
-                              new BigNumber(asset.balance)
-                            ).toNumber()}{" "}
-                            {asset.symbol}
-                          </Text>
-
-                          {asset.name && asset.name !== asset.symbol && (
-                            <Text fontSize="xs" color="gray.500">
-                              {asset.name}
-                            </Text>
-                          )}
-
-                          <Text
-                            fontSize="xs"
-                            color="gray.600"
-                            fontFamily="mono"
-                            wordBreak="break-all"
-                          >
-                            {asset.tokenAddress}
-                          </Text>
-                        </VStack>
-                      </Box>
-                    );
-                  })}
-                </SimpleGrid>
-              </Box>
-            )}
+                        {asset.tokenAddress}
+                      </Text>
+                    </VStack>
+                  </Box>
+                );
+              })}
 
             {account.publicKey && (
               <Box>
@@ -284,11 +259,16 @@ export const Account = () => {
                 </Box>
               </Box>
             )}
-          </VStack>
-        </Box>
+          </Grid>
+        </VStack>
 
-        <AccountTransactions address={address} />
+        <VStack gap={3} align="strech">
+          <Heading as="h2" size="lg" color="white">
+            Recent Transactions
+          </Heading>
+          <AccountTransactions address={address} />
+        </VStack>
       </VStack>
-    </Box>
+    </>
   );
 };

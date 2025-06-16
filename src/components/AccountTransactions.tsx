@@ -1,28 +1,21 @@
 import { useState } from "react";
 
-import {
-  Box,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Button,
-  Spinner,
-  Badge,
-} from "@chakra-ui/react";
+import { Box, Heading, Text, VStack, Spinner, Badge } from "@chakra-ui/react";
 import { Table } from "@chakra-ui/react";
 import { useAccountTransactions } from "../queries/useAccountTransactions";
 import BigNumber from "bignumber.js";
 import {
   camelCaseToTitleCase,
   NAMADA_ADDRESS,
-  shortenHashOrAddress,
   toDisplayAmount,
 } from "../utils";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import type { Asset } from "@chain-registry/types";
 import { blockUrl, transactionUrl } from "../routes";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { Pagination } from "./Pagination";
+import { Hash } from "./Hash";
+import { PageLink } from "./PageLink";
 
 interface Tx {
   txId: string;
@@ -52,7 +45,7 @@ type AccountTransactionsProps = {
 
 const getTransactionInfo = (
   transaction: Transaction,
-  transparentAddress: string
+  transparentAddress: string,
 ): { amount: BigNumber } | undefined => {
   const { tx } = transaction;
   if (!tx?.data) return undefined;
@@ -84,13 +77,13 @@ const getTransactionInfo = (
 
   if (source?.sources) {
     matchingEntry = source.sources.find(
-      (src) => src.owner === transparentAddress
+      (src) => src.owner === transparentAddress,
     );
   }
 
   if (!matchingEntry && target?.targets) {
     matchingEntry = target.targets.find(
-      (target) => target.owner === transparentAddress
+      (target) => target.owner === transparentAddress,
     );
   }
 
@@ -102,7 +95,7 @@ const getTransactionInfo = (
 
 const getToken = (
   txn: Transaction["tx"],
-  nativeToken: string
+  nativeToken: string,
 ): string | undefined => {
   if (txn?.kind === "bond" || txn?.kind === "unbond") return nativeToken;
   let parsed;
@@ -128,6 +121,7 @@ const getToken = (
 };
 
 export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const transactionsPerPage = 10;
   const { data: chainAssetsMap } = useChainAssetsMap();
@@ -142,16 +136,8 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
   const transactions = transactionsData?.results || [];
   const totalPages = Math.ceil(
     (transactionsData?.pagination.totalItems || 0) /
-      transactionsData?.pagination.perPage
+      transactionsData?.pagination.perPage,
   );
-
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
 
   if (isLoading && currentPage === 1) {
     return (
@@ -169,14 +155,9 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
 
   if (error) {
     return (
-      <Box bg="gray.800" p={6} rounded="md">
-        <Heading as="h2" size="md" mb={4}>
-          Recent Transactions
-        </Heading>
-        <Box bg="red.100" color="red.800" p={4} rounded="md">
-          <Text fontWeight="semibold">Error</Text>
-          <Text>Failed to load transactions. Please try again.</Text>
-        </Box>
+      <Box bg="red.100" color="red.800" p={4} rounded="md">
+        <Text fontWeight="semibold">Error</Text>
+        <Text>Failed to load transactions. Please try again.</Text>
       </Box>
     );
   }
@@ -184,34 +165,22 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
   if (!transactions || transactions.length === 0) {
     return (
       <Box bg="gray.800" p={6} rounded="md">
-        <Heading as="h2" size="md" mb={4}>
-          Recent Transactions
-        </Heading>
         <Text color="gray.400">No transactions found for this account.</Text>
       </Box>
     );
   }
 
   return (
-    <Box bg="gray.800" p={6} rounded="md">
-      <HStack justify="space-between" align="center" mb={4}>
-        <Heading as="h2" size="md">
-          Recent Transactions
-        </Heading>
-        {isFetching && <Spinner size="sm" />}
-      </HStack>
-
+    <>
       <Box overflowX="auto">
         <Table.Root variant="outline" size="sm">
           <Table.Header>
             <Table.Row>
-              <Table.ColumnHeader color="gray.400">Hash</Table.ColumnHeader>
-              <Table.ColumnHeader color="gray.400">Type</Table.ColumnHeader>
-              <Table.ColumnHeader color="gray.400">Status</Table.ColumnHeader>
-              <Table.ColumnHeader color="gray.400">Block</Table.ColumnHeader>
-              <Table.ColumnHeader color="gray.400" textAlign="right">
-                Amount
-              </Table.ColumnHeader>
+              <Table.ColumnHeader color="gray.300">Hash</Table.ColumnHeader>
+              <Table.ColumnHeader color="gray.300">Type</Table.ColumnHeader>
+              <Table.ColumnHeader color="gray.300">Status</Table.ColumnHeader>
+              <Table.ColumnHeader color="gray.300">Block</Table.ColumnHeader>
+              <Table.ColumnHeader color="gray.300">Amount</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -224,32 +193,15 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                 return (
                   <Table.Row
                     key={tx.tx.txId}
-                    border="1px solid"
-                    borderColor="gray.600"
-                    borderRadius="lg"
-                    mb={3}
-                    bg="gray.750"
                     _hover={{
-                      bg: "gray.700",
-                      borderColor: "blue.400",
-                      transform: "translateY(-1px)",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                      bg: "gray.800",
                     }}
-                    transition="all 0.2s ease-in-out"
-                    px={4}
-                    py={2}
+                    transition="all 0.1s ease-in-out"
+                    cursor="pointer"
+                    onClick={() => navigate(transactionUrl(tx.tx.wrapperId))}
                   >
-                    <Table.Cell>
-                      <Link to={transactionUrl(tx.tx.txId)}>
-                        <Box
-                          as="span"
-                          fontSize="sm"
-                          color="blue.400"
-                          _hover={{ color: "blue.300" }}
-                        >
-                          {shortenHashOrAddress(tx.tx.txId)}
-                        </Box>
-                      </Link>
+                    <Table.Cell py={4}>
+                      <Hash hash={tx.tx.wrapperId} />
                     </Table.Cell>
                     <Table.Cell>
                       <Badge
@@ -268,38 +220,29 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                         backgroundColor={
                           tx.tx.exitCode === "applied" ? "green.500" : "red.500"
                         }
-                        fontSize="sm"
+                        fontSize="xs"
                         textTransform="capitalize"
-                        borderRadius="full"
-                        px={3}
-                        py={1}
                       >
                         {tx.tx.exitCode}
                       </Badge>
                     </Table.Cell>
                     <Table.Cell>
-                      <Link to={blockUrl(tx.blockHeight)}>
-                        <Box
-                          as="span"
-                          color="blue.400"
-                          _hover={{ color: "blue.300" }}
-                        >
-                          {tx.blockHeight}
-                        </Box>
-                      </Link>
+                      <PageLink
+                        to={blockUrl(tx.blockHeight)}
+                        _hover={{
+                          color: "yellow",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        {tx.blockHeight}
+                      </PageLink>
                     </Table.Cell>
-                    <Table.Cell
-                      fontSize="sm"
-                      fontFamily="mono"
-                      textAlign="right"
-                      color="yellow"
-                      fontWeight="semibold"
-                    >
+                    <Table.Cell>
                       {transactionInfo?.amount &&
                         namadaAsset &&
                         toDisplayAmount(
                           namadaAsset as Asset,
-                          BigNumber(transactionInfo.amount)
+                          BigNumber(transactionInfo.amount),
                         ).toString()}{" "}
                       <Text as="span" color="gray.400" fontSize="xs">
                         {tokenSymbol}
@@ -311,36 +254,16 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
           </Table.Body>
         </Table.Root>
       </Box>
-
-      {/* Pagination */}
       {totalPages > 1 && (
-        <HStack justify="space-between" align="center" mt={4}>
-          <Text fontSize="sm" color="gray.400">
-            Page {currentPage} of {totalPages} (
-            {transactionsData?.pagination.totalItems} total)
-          </Text>
-          <HStack gap={2}>
-            <Button
-              size="sm"
-              variant="outline"
-              color="yellow"
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1 || isFetching}
-            >
-              Previous
-            </Button>
-            <Button
-              size="sm"
-              backgroundColor="yellow"
-              color="black"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages || isFetching}
-            >
-              Next
-            </Button>
-          </HStack>
-        </HStack>
+        <Box>
+          <Pagination
+            currentPage={currentPage}
+            count={transactionsData?.pagination.totalItems || 0}
+            pageSize={30}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        </Box>
       )}
-    </Box>
+    </>
   );
 };

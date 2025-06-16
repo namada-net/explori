@@ -1,10 +1,10 @@
 import { useSimpleGet } from "./useSimpleGet";
 
-export const useAllValidators = (
+export const useValidators = (
   page?: number,
   state?: string,
   sortField?: string,
-  sortOrder?: string
+  sortOrder?: string,
 ) => {
   const queryParams = new URLSearchParams();
 

@@ -1,22 +1,30 @@
 import { useParams, useNavigate, useLocation } from "react-router";
+{
+  /* Validator Header */
+}
 import {
   Box,
   Heading,
   Text,
   VStack,
-  Spinner,
   HStack,
   Button,
   Icon,
-  Image,
   SimpleGrid,
+  Skeleton,
 } from "@chakra-ui/react";
+
 import { Table } from "@chakra-ui/react";
-import { FaChevronLeft, FaDiscord, FaGlobe } from "react-icons/fa";
+import { FaChevronLeft } from "react-icons/fa";
 import {
   useValidatorBonds,
   useValidatorUnbonds,
 } from "../queries/useValidator";
+import { useAllValidators } from "../queries/useAllValidators";
+import type { Validator } from "../types";
+import { ValidatorHeader } from "../components/ValidatorHeader";
+import { useMemo } from "react";
+import { ValidatorInfo } from "../components/ValidatorInfo";
 
 interface Bond {
   delegatorAddress: string;
@@ -26,29 +34,17 @@ interface Bond {
   amountUnbonding?: string;
 }
 
-interface Validator {
-  address: string;
-  votingPower: string;
-  maxCommission: string;
-  commission: string;
-  state: string;
-  name: string;
-  email: string;
-  website: string;
-  description: string;
-  discordHandle: string;
-  avatar: string;
-  validatorId: string;
-  rank: number;
-}
-
 export const ValidatorDetail = () => {
-  const { address } = useParams<{ address: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { address } = useParams<{ address: string }>();
 
-  // Get validator data from navigation state
-  const validator = location.state?.validator as Validator;
+  // We currently don't have an endpoint to fetch a single validator by address,
+  const validators = useAllValidators();
+
+  const validator = useMemo(
+    () => validators.data?.find((v: Validator) => v.address === address),
+    [validators.data, address],
+  );
 
   const {
     data: bonds,
@@ -78,7 +74,7 @@ export const ValidatorDetail = () => {
   // Create a comprehensive bonds table combining bonded, bonding, and unbonding amounts
   const processedBonds = bondData.map((bond: Bond) => {
     const matchingUnbond = unbondData.find(
-      (unbond: Bond) => unbond.delegatorAddress === bond.delegatorAddress
+      (unbond: Bond) => unbond.delegatorAddress === bond.delegatorAddress,
     );
     return {
       ...bond,
@@ -95,29 +91,9 @@ export const ValidatorDetail = () => {
     );
   }
 
-  if (!validator) {
-    return (
-      <Box bg="yellow.100" color="yellow.800" p={4} rounded="md">
-        <Text fontWeight="semibold">Warning</Text>
-        <Text>
-          Validator data not available. Please navigate from the validators
-          list.
-        </Text>
-        <Button
-          onClick={() => navigate("/validators")}
-          mt={2}
-          size="sm"
-          colorScheme="yellow"
-        >
-          Go to Validators
-        </Button>
-      </Box>
-    );
-  }
-
   return (
     <Box>
-      <VStack gap={6} align="stretch">
+      <VStack gap={4} align="stretch">
         {/* Header with back button */}
         <HStack>
           <Button
@@ -132,205 +108,15 @@ export const ValidatorDetail = () => {
           </Button>
         </HStack>
 
-        {isLoading ? (
-          <VStack gap={4} align="center" py={8}>
-            <Spinner size="lg" color="yellow.400" />
-            <Text color="gray.400">Loading validator details...</Text>
-          </VStack>
+        {isLoading || !validator ? (
+          <Skeleton height="90px" width="100%" />
         ) : (
           <>
-            {/* Validator Header */}
-            <Box bg="gray.800" p={6} rounded="md">
-              <HStack align="start" gap={6}>
-                <Box
-                  width="80px"
-                  height="80px"
-                  borderRadius="full"
-                  overflow="hidden"
-                  bg="gray.600"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  flexShrink={0}
-                  position="relative"
-                >
-                  {validator.avatar ? (
-                    <>
-                      <Image
-                        src={validator.avatar}
-                        alt={validator.name || "Validator"}
-                        width="80px"
-                        height="80px"
-                        objectFit="cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <Text fontSize="2xl" color="gray.300">
-                      {(validator.name || "U")[0].toUpperCase()}
-                    </Text>
-                  )}
-                </Box>
-
-                <VStack align="start" flex={1} gap={3}>
-                  <HStack align="center" gap={3}>
-                    <Heading as="h1" size="xl" color="white">
-                      {validator.name || "Unknown Validator"}
-                    </Heading>
-                  </HStack>
-
-                  {validator.description && (
-                    <Text color="gray.300" maxW="600px">
-                      {validator.description}
-                    </Text>
-                  )}
-
-                  <HStack gap={4}>
-                    {validator.website && (
-                      <a
-                        href={validator.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          padding: "6px 12px",
-                          fontSize: "14px",
-                          border: "1px solid #4A5568",
-                          borderRadius: "6px",
-                          color: "#A0AEC0",
-                          textDecoration: "none",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#2D3748";
-                          e.currentTarget.style.color = "white";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                          e.currentTarget.style.color = "#A0AEC0";
-                        }}
-                      >
-                        <Icon as={FaGlobe} />
-                        Website
-                      </a>
-                    )}
-                    {validator.discordHandle && (
-                      <a
-                        href={`https://discord.com/users/${validator.discordHandle}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          padding: "6px 12px",
-                          fontSize: "14px",
-                          border: "1px solid #4A5568",
-                          borderRadius: "6px",
-                          color: "#A0AEC0",
-                          textDecoration: "none",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#2D3748";
-                          e.currentTarget.style.color = "white";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                          e.currentTarget.style.color = "#A0AEC0";
-                        }}
-                      >
-                        <Icon as={FaDiscord} />
-                        Discord
-                      </a>
-                    )}
-                  </HStack>
-                </VStack>
-              </HStack>
-            </Box>
-
-            {/* Validator Stats */}
-            <Box bg="gray.800" p={6} rounded="md">
-              <Heading as="h2" size="md" mb={4} color="white">
-                Validator Statistics
-              </Heading>
-
-              <SimpleGrid columns={{ base: 2, md: 4, lg: 6 }} gap={6}>
-                <Box>
-                  <Text fontSize="sm" color="gray.400">
-                    Rank
-                  </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                    #{validator.rank || "-"}
-                  </Text>
-                </Box>
-
-                <Box>
-                  <Text fontSize="sm" color="gray.400">
-                    Voting Power
-                  </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                    {formatAmount(validator.votingPower)}
-                  </Text>
-                  <Text fontSize="xs" color="gray.500">
-                    NAM
-                  </Text>
-                </Box>
-
-                <Box>
-                  <Text fontSize="sm" color="gray.400">
-                    Commission
-                  </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                    {validator.commission
-                      ? `${parseFloat(validator.commission).toFixed(2)}%`
-                      : "0%"}
-                  </Text>
-                </Box>
-
-                <Box>
-                  <Text fontSize="sm" color="gray.400">
-                    Max Commission
-                  </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                    {validator.maxCommission
-                      ? `${parseFloat(validator.maxCommission).toFixed(2)}%`
-                      : "0%"}
-                  </Text>
-                </Box>
-
-                <Box>
-                  <Text fontSize="sm" color="gray.400">
-                    Delegators
-                  </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="yellow">
-                    {processedBonds.length}
-                  </Text>
-                </Box>
-              </SimpleGrid>
-            </Box>
-
-            {/* Validator Address */}
-            <Box bg="gray.800" p={6} rounded="md">
-              <Heading as="h2" size="md" mb={4} color="white">
-                Validator Address
-              </Heading>
-              <Text
-                fontFamily="mono"
-                fontSize="sm"
-                color="gray.300"
-                bg="gray.900"
-                p={3}
-                rounded="md"
-                wordBreak="break-all"
-              >
-                {address}
-              </Text>
-            </Box>
+            <ValidatorHeader validator={validator} />
+            <ValidatorInfo
+              validator={validator}
+              numDelegators={processedBonds.length}
+            />
 
             {/* Bonds Table */}
             <Box bg="gray.800" p={6} rounded="md">
