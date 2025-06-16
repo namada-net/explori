@@ -1,11 +1,16 @@
 import { Box, Container, Flex, Separator, VStack } from "@chakra-ui/react";
-import { FaCubes, FaDiscord, FaHouse, FaTelegram } from "react-icons/fa6";
+import {
+  FaCubes,
+  FaDiscord,
+  FaHouse,
+  FaPeopleGroup,
+  FaTelegram,
+  FaXTwitter,
+} from "react-icons/fa6";
 import { Outlet } from "react-router";
-import { Navbar } from "./Navbar";
 import { MenuItem } from "./MenuItem";
-import { FaPeopleGroup } from "react-icons/fa6";
-import { FaXTwitter } from "react-icons/fa6";
 import { NamadaIcon } from "./NamadaIcon";
+import { Navbar } from "./Navbar";
 
 export const Layout = () => {
   return (
@@ -63,7 +68,7 @@ export const Layout = () => {
               />
             </VStack>
           </VStack>
-          <Box flex="1" pt={5} pb={12} px={8}>
+          <Box flex="1" pt={5} pb={12} px={8} overflow="auto">
             <Outlet />
           </Box>
         </Container>

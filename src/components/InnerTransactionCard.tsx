@@ -1,4 +1,4 @@
-import { Box, Grid, GridItem } from "@chakra-ui/react";
+import { Grid } from "@chakra-ui/react";
 import type { InnerTransaction } from "../types";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
@@ -14,7 +14,7 @@ export const InnerTransactionCard = ({
 }: InnerTransactionCardProps) => {
   return (
     <Grid
-      templateColumns="60% 1fr 1fr"
+      templateColumns={{ base: "1fr", lg: "1fr 1fr" }}
       gap={4}
       w="100%"
       py={4}
@@ -25,13 +25,10 @@ export const InnerTransactionCard = ({
       borderColor="yellow"
       overflow="auto"
     >
-      <Box bg="gray.800">
-        <Data
-          title="Inner TX Hash"
-          content={<Hash hash={innerTransaction.txId} enableCopy={true} />}
-        />
-      </Box>
-      <Data title="Kind" content={innerTransaction.kind || "unknown"} />
+      <Data
+        title="Inner TX Hash"
+        content={<Hash hash={innerTransaction.txId} enableCopy={true} />}
+      />
       <Data
         title="Exit Code"
         content={
@@ -40,9 +37,8 @@ export const InnerTransactionCard = ({
           />
         }
       />
-      <GridItem colSpan={3}>
-        <Data title="Memo" content={innerTransaction.memo || "-"} />
-      </GridItem>
+      <Data title="Kind" content={innerTransaction.kind || "unknown"} />
+      <Data title="Memo" content={innerTransaction.memo || "-"} />
       <TransactionDetailsData details={JSON.parse(innerTransaction.data)} />
     </Grid>
   );

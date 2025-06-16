@@ -4,6 +4,7 @@ import BigNumber from "bignumber.js";
 import { accountUrl, validatorUrl } from "../routes";
 import { shortenHashOrAddress, toDisplayAmount } from "../utils";
 import { Data } from "./Data";
+import { Hash } from "./Hash";
 import { PageLink } from "./PageLink";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -25,6 +26,15 @@ const valueMap: Record<string, Function | undefined> = {
     }
     return <span>{value}</span>;
   },
+  owner: (value: string) => {
+    return <Hash hash={value} enableCopy={true} />;
+  },
+  token: (value: string) => {
+    return <Hash hash={value} enableCopy={true} />;
+  },
+  shielded_section_hash: (value: string) => {
+    return <>{JSON.stringify(value)}</>;
+  },
 };
 
 const keyMap = (key: string) => {
@@ -33,9 +43,11 @@ const keyMap = (key: string) => {
 
 export const TransactionDetailsData = ({ details }: { details: unknown }) => {
   if (Array.isArray(details)) {
-    return details.map((item, index) => (
-      <TransactionDetailsData details={item} key={index} />
-    ));
+    return details
+      .sort()
+      .map((item, index) => (
+        <TransactionDetailsData details={item} key={index} />
+      ));
   }
 
   if (typeof details === "object" && details !== null) {
@@ -44,8 +56,10 @@ export const TransactionDetailsData = ({ details }: { details: unknown }) => {
         key={key}
         title={keyMap(key)}
         content={
-          Array.isArray(value) ? (
-            <VStack>
+          valueMap[key] ? (
+            valueMap[key](value)
+          ) : Array.isArray(value) ? (
+            <>
               {value.map((item) => (
                 <VStack
                   key={JSON.stringify(item)}
@@ -59,9 +73,7 @@ export const TransactionDetailsData = ({ details }: { details: unknown }) => {
                   <TransactionDetailsData details={item} />
                 </VStack>
               ))}
-            </VStack>
-          ) : valueMap[key] ? (
-            valueMap[key](value)
+            </>
           ) : (
             value
           )

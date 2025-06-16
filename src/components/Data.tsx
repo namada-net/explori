@@ -33,11 +33,13 @@ function renderAnything(value: unknown): React.ReactNode {
 
 export const Data = ({ title, content }: DataType) => {
   return (
-    <VStack align="start" gap={1}>
+    <VStack align="start" gap={1} overflow="auto">
       <Heading as="h3" size="xs" fontStyle="bold">
         {title}
       </Heading>
-      <Box fontSize="sm">{renderAnything(content)}</Box>
+      <Box fontSize="sm" maxW="100%" overflow="auto">
+        {renderAnything(content)}
+      </Box>
     </VStack>
   );
 };

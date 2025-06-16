@@ -1,8 +1,7 @@
-import { shortenHashOrAddress } from "../utils";
 import { Box, Flex } from "@chakra-ui/react";
 import { useState } from "react";
-import { FaCopy } from "react-icons/fa6";
-import { FaCheck } from "react-icons/fa6";
+import { FaCheck, FaCopy } from "react-icons/fa6";
+import { shortenHashOrAddress } from "../utils";
 
 type HashProps = {
   hash: string;
@@ -33,10 +32,12 @@ export const Hash = ({ hash, enableCopy }: HashProps) => {
       color="gray.400"
       as="span"
       fontSize="sm"
+      lineHeight="shorter"
       _hover={enableCopy ? { color: "gray.200" } : {}}
       onClick={handleCopy}
+      overflow="auto"
     >
-      {shortenHashOrAddress(hash, 20)}
+      <Box overflow="auto">{shortenHashOrAddress(hash, 20)}</Box>
       {enableCopy && (
         <Box as="span" ml={2} cursor="pointer" title="Copy to clipboard">
           {copied ? <FaCheck /> : <FaCopy />}
