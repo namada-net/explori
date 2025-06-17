@@ -23,12 +23,10 @@ export const TransactionDetails = () => {
 
   if (transaction.isLoading) {
     return (
-      <>
-        <VStack gap={4} align="center" py={8}>
-          <Spinner size="lg" />
-          <Text color="gray.400">Loading transaction...</Text>
-        </VStack>
-      </>
+      <VStack gap={4} align="center" py={8}>
+        <Spinner size="lg" />
+        <Text color="gray.400">Loading transaction...</Text>
+      </VStack>
     );
   }
 
@@ -39,11 +37,48 @@ export const TransactionDetails = () => {
         <Text>
           Failed to load transaction. Please check the address and try again.
         </Text>
-        <Text>{transaction.error.message}</Text>
+        <Text>{transaction.error?.message}</Text>
       </Box>
     );
   }
 
+  const txData = transaction.data;
+  const isInnerTx = txData?.type === "inner";
+
+  if (isInnerTx) {
+    const parsedData = txData.data ? JSON.parse(txData.data) : null;
+    const source = parsedData?.sources?.[0];
+    const target = parsedData?.targets?.[0];
+
+    return (
+      <>
+        <Heading as="h1" size="xl" mb={4}>
+          <Flex color="cyan" align="center" gap={2}>
+            <FaArrowRightArrowLeft /> Inner Transaction
+          </Flex>
+          <Box display="flex" fontSize="sm" alignItems="baseline" gap={1}>
+            Hash: <Hash hash={hash || ""} enableCopy={true} />
+          </Box>
+        </Heading>
+        <Grid templateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={1}>
+          <OverviewCard title="Wrapper ID">
+            <Hash hash={txData.wrapperId || ""} enableCopy={true} />
+          </OverviewCard>
+        </Grid>
+
+        {txData.data && (
+          <>
+            <Heading as="h2" size="lg" mt={8} mb={2}>
+              Transaction Data
+            </Heading>
+            <InnerTransactionCard innerTransaction={txData} />
+          </>
+        )}
+      </>
+    );
+  }
+
+  // Show wrapper transaction details + inner transactions
   return (
     <>
       <Heading as="h1" size="xl" mb={4}>
@@ -56,43 +91,46 @@ export const TransactionDetails = () => {
       </Heading>
       <Grid templateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={1}>
         <OverviewCard title="Fee Payer">
-          <AccountLink address={transaction.data?.feePayer || ""} />
+          <AccountLink address={txData?.feePayer || ""} />
         </OverviewCard>
         <OverviewCard title="Gas Limit">
-          {transaction.data?.gasLimit || "N/A"}
+          {txData?.gasLimit || "N/A"}
         </OverviewCard>
-        <OverviewCard title="Gas Used">
-          {transaction.data?.gasUsed || "N/A"}
-        </OverviewCard>
+        <OverviewCard title="Gas Used">{txData?.gasUsed || "N/A"}</OverviewCard>
         <OverviewCard title="Amount per Gas">
-          {transaction.data?.amountPerGasUnit}
+          {txData?.amountPerGasUnit || "N/A"}
         </OverviewCard>
         <OverviewCard title="MASP Fee">
-          {transaction.data?.maspFeePayment?.[1]?.sources?.[0]?.amount || "N/A"}
+          {txData?.maspFeePayment?.[1]?.sources?.[0]?.amount || "N/A"}
         </OverviewCard>
         <OverviewCard title="Block Height">
-          {transaction.data?.blockHeight}
+          {txData?.blockHeight || "N/A"}
         </OverviewCard>
         <OverviewCard title="Status">
-          <TransactionStatusBadge exitCode={transaction.data?.exitCode} />
+          <TransactionStatusBadge exitCode={txData?.exitCode} />
         </OverviewCard>
         <OverviewCard title="Atomic">
-          {transaction.data?.atomic === "true" ? "Yes" : "No"}
+          {txData?.atomic === "true" ? "Yes" : "No"}
         </OverviewCard>
       </Grid>
-      <Heading as="h2" size="lg" mt={8} mb={2}>
-        Inner Transactions
-      </Heading>
-      <VStack gap={4} align="start" w="100%">
-        {transaction.data?.innerTransactions.map(
-          (innerTransaction: InnerTransaction) => (
-            <InnerTransactionCard
-              key={innerTransaction.txId}
-              innerTransaction={innerTransaction}
-            />
-          ),
-        )}
-      </VStack>
+
+      {txData?.innerTransactions?.length > 0 && (
+        <>
+          <Heading as="h2" size="lg" mt={8} mb={2}>
+            Inner Transactions ({txData.innerTransactions.length})
+          </Heading>
+          <VStack gap={4} align="start" w="100%">
+            {txData.innerTransactions.map(
+              (innerTransaction: InnerTransaction, index: number) => (
+                <InnerTransactionCard
+                  key={innerTransaction.txId || `inner-${index}`}
+                  innerTransaction={innerTransaction}
+                />
+              )
+            )}
+          </VStack>
+        </>
+      )}
     </>
   );
 };
