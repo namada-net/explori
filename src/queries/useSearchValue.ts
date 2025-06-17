@@ -53,6 +53,13 @@ export const useSearchValue = (search: string) => {
         /* empty */
       }
 
+      try {
+        await get("/chain/inner/" + search);
+        output.transactions.push(search);
+      } catch {
+        /* empty */
+      }
+
       return output;
     },
   });

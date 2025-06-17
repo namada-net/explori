@@ -38,7 +38,7 @@ export const Hash = ({ hash, enableCopy }: HashProps) => {
       overflow="auto"
     >
       <Box as="span" overflow="auto">
-        {shortenHashOrAddress(hash, 20)}
+        {shortenHashOrAddress(hash, 15)}
       </Box>
       {enableCopy && (
         <Box as="span" ml={2} cursor="pointer" title="Copy to clipboard">
