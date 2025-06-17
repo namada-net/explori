@@ -46,10 +46,6 @@ export const TransactionDetails = () => {
   const isInnerTx = txData?.type === "inner";
 
   if (isInnerTx) {
-    const parsedData = txData.data ? JSON.parse(txData.data) : null;
-    const source = parsedData?.sources?.[0];
-    const target = parsedData?.targets?.[0];
-
     return (
       <>
         <Heading as="h1" size="xl" mb={4}>
@@ -126,7 +122,7 @@ export const TransactionDetails = () => {
                   key={innerTransaction.txId || `inner-${index}`}
                   innerTransaction={innerTransaction}
                 />
-              )
+              ),
             )}
           </VStack>
         </>
