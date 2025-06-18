@@ -7,6 +7,7 @@ import {
   FaTelegram,
   FaXTwitter,
 } from "react-icons/fa6";
+import { IoSwapHorizontal } from "react-icons/io5";
 import { Outlet } from "react-router";
 import { MenuItem } from "./MenuItem";
 import { NamadaIcon } from "./NamadaIcon";
@@ -35,6 +36,11 @@ export const Layout = () => {
           >
             <MenuItem label="Home" url="/" icon={<FaHouse />} />
             <MenuItem label="Blocks" url="/blocks" icon={<FaCubes />} />
+            <MenuItem
+              label="Transactions"
+              url="/transactions"
+              icon={<IoSwapHorizontal />}
+            />
             <MenuItem
               label="Validators"
               url="/validators"

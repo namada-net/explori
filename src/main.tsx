@@ -1,26 +1,28 @@
-import "./global.css";
+import { ChakraProvider } from "@chakra-ui/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ChakraProvider } from "@chakra-ui/react";
-import { Index } from "./pages/Index";
-import { Account } from "./pages/Account";
-import { Validators } from "./pages/Validators";
-import { ValidatorDetail } from "./pages/ValidatorDetail";
+import { BrowserRouter, Route, Routes } from "react-router";
 import { Layout } from "./components/Layout";
+import "./global.css";
+import { Account } from "./pages/Account";
 import { BlockDetails } from "./pages/BlockDetails";
+import { Blocks } from "./pages/Blocks";
+import { Index } from "./pages/Index";
+import { TransactionDetails } from "./pages/TransactionDetails";
+import { Transactions } from "./pages/Transactions";
+import { ValidatorDetail } from "./pages/ValidatorDetail";
+import { Validators } from "./pages/Validators";
 import {
   accountUrl,
   blocksUrl,
   blockUrl,
+  transactionsUrl,
   transactionUrl,
   validatorsUrl,
   validatorUrl,
 } from "./routes";
 import theme from "./theme";
-import { TransactionDetails } from "./pages/TransactionDetails";
-import { Blocks } from "./pages/Blocks";
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
@@ -36,6 +38,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path={accountUrl()} element={<Account />} />
               <Route path={validatorsUrl()} element={<Validators />} />
               <Route path={validatorUrl()} element={<ValidatorDetail />} />
+              <Route path={transactionsUrl()} element={<Transactions />} />
               <Route path={transactionUrl()} element={<TransactionDetails />} />
             </Route>
           </Routes>

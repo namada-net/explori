@@ -11,5 +11,7 @@ export const validatorUrl = (address: string = ":address") =>
 
 export const validatorsUrl = () => "/validators";
 
+export const transactionsUrl = () => "/transactions";
+
 export const transactionUrl = (hash: string = ":hash") =>
   `/transactions/${hash}`;
