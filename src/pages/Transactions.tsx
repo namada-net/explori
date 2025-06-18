@@ -60,14 +60,13 @@ const BlockTransactions = ({ blockHeight }: { blockHeight: number }) => {
 
 const LatestBlockTransactions = ({
   lastBlockNumber,
-  blocksPerPage = 10,
 }: {
   lastBlockNumber: number;
-  blocksPerPage?: number;
 }) => {
+  const blocksAmount = 20;
   const renderBlocks = (page: number) => {
-    const startBlock = lastBlockNumber - (page - 1) * blocksPerPage;
-    const endBlock = Math.max(startBlock - blocksPerPage + 1, 1);
+    const startBlock = lastBlockNumber - (page - 1) * blocksAmount;
+    const endBlock = Math.max(startBlock - blocksAmount + 1, 1);
     const blocks = [];
     for (let n = startBlock; n >= endBlock; n--) {
       blocks.push(<BlockTransactions key={n} blockHeight={n} />);
