@@ -10,7 +10,7 @@ export const camelCaseToTitleCase = (str: string) => {
 
 export const NAMADA_ADDRESS = "tnam1q9gr66cvu4hrzm0sd5kmlnjje82gs3xlfg3v6nu7";
 
-export const shortenHashOrAddress = (hash: string, length = 10) => {
+export const shortenHashOrAddress = (hash: string | null, length = 10) => {
   if (!hash) return "-";
   return `${hash.slice(0, length)}...${hash.slice(-length)}`;
 };
