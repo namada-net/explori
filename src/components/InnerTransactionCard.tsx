@@ -4,6 +4,7 @@ import { Data } from "./Data";
 import { Hash } from "./Hash";
 import { TransactionDetailsData } from "./TransactionDetailsData";
 import { TransactionStatusBadge } from "./TransactionStatusBadge";
+import { decodeHexAscii } from "../utils/transactions";
 
 type InnerTransactionCardProps = {
   innerTransaction: InnerTransaction;
@@ -38,7 +39,7 @@ export const InnerTransactionCard = ({
         }
       />
       <Data title="Kind" content={innerTransaction.kind || "unknown"} />
-      <Data title="Memo" content={innerTransaction.memo || "-"} />
+      <Data title="Memo" content={decodeHexAscii(innerTransaction.memo || "") || "-"} />
       <TransactionDetailsData details={JSON.parse(innerTransaction.data)} />
     </Grid>
   );
