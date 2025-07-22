@@ -7,6 +7,7 @@ import {
   FaTelegram,
   FaXTwitter,
 } from "react-icons/fa6";
+import { FaVoteYea } from "react-icons/fa";
 import { IoSwapHorizontal } from "react-icons/io5";
 import { Outlet } from "react-router";
 import { MenuItem } from "./MenuItem";
@@ -45,6 +46,11 @@ export const Layout = () => {
               label="Validators"
               url="/validators"
               icon={<FaPeopleGroup />}
+            />
+            <MenuItem
+              label="Proposals"
+              url="/proposals"
+              icon={<FaVoteYea />}
             />
             <Separator mr={6} />
             <VStack gap={3} align="start" color="gray.300" fontSize="sm">

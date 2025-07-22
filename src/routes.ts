@@ -15,3 +15,7 @@ export const transactionsUrl = () => "/transactions";
 
 export const transactionUrl = (hash: string = ":hash") =>
   `/transactions/${hash}`;
+
+export const proposalsUrl = () => "/proposals";
+
+export const proposalUrl = (id: number | string = ":id") => `/proposals/${id}`;

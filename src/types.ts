@@ -40,3 +40,35 @@ export type TransactionTarget = {
   token: string;
   type: string;
 };
+
+export type ProposalResponse = {
+  id: string;
+  content: string;
+  type: string;
+  tallyType: string;
+  data: string;
+  author: string;
+  startEpoch: string;
+  endEpoch: string;
+  activationEpoch: string;
+  startTime: string;
+  endTime: string;
+  currentTime: string;
+  activationTime: string;
+  status: string;
+  yayVotes: string;
+  nayVotes: string;
+  abstainVotes: string;
+};
+
+export type ProposalContent = {
+  title: string;
+  authors: string;
+  "discussions-to": string;
+  created: string;
+  license: string;
+  abstract: string;
+  motivation: string;
+  details: string;
+  requires: string;
+}

@@ -9,6 +9,8 @@ import { Account } from "./pages/Account";
 import { BlockDetails } from "./pages/BlockDetails";
 import { Blocks } from "./pages/Blocks";
 import { Index } from "./pages/Index";
+import { Proposals } from "./pages/Proposals";
+import { ProposalDetails } from "./pages/ProposalDetails";
 import { TransactionDetails } from "./pages/TransactionDetails";
 import { Transactions } from "./pages/Transactions";
 import { ValidatorDetail } from "./pages/ValidatorDetail";
@@ -21,6 +23,8 @@ import {
   transactionUrl,
   validatorsUrl,
   validatorUrl,
+  proposalsUrl,
+  proposalUrl,
 } from "./routes";
 import theme from "./theme";
 const queryClient = new QueryClient();
@@ -40,6 +44,8 @@ createRoot(document.getElementById("root")!).render(
               <Route path={validatorUrl()} element={<ValidatorDetail />} />
               <Route path={transactionsUrl()} element={<Transactions />} />
               <Route path={transactionUrl()} element={<TransactionDetails />} />
+              <Route path={proposalsUrl()} element={<Proposals />} />
+              <Route path={proposalUrl()} element={<ProposalDetails />} />
             </Route>
           </Routes>
         </BrowserRouter>
