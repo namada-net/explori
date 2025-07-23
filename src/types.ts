@@ -40,3 +40,37 @@ export type TransactionTarget = {
   token: string;
   type: string;
 };
+
+// RPC-related types
+export type Balance = Record<string, string>;
+
+export type DelegationTotals = Record<string, string>;
+
+export type StakingTotals = {
+  owner: string;
+  totalBonded: string;
+  totalUnbonded: string;
+  totalWithdrawable: string;
+};
+
+export type StakingPositions = {
+  owner: string;
+  bonds: Array<{
+    validator: string;
+    amount: string;
+    startEpoch: bigint;
+  }>;
+  unbonds: Array<{
+    validator: string;
+    amount: string;
+    withdrawEpoch: bigint;
+  }>;
+};
+
+export type GasCosts = Record<string, string>;
+
+export type RpcChainConfig = {
+  rpcUrl: string;
+  chainId: string;
+  maspIndexerUrl?: string;
+};

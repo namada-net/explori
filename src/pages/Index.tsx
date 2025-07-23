@@ -6,7 +6,7 @@ import {
   Grid,
   Heading,
   SkeletonText,
-  VStack,
+  Stack,
 } from "@chakra-ui/react";
 import { useLatestEpoch } from "../queries/useLatestEpoch";
 import { useChainParameters } from "../queries/useChainParameters";
@@ -15,8 +15,9 @@ import { useTokenSupply } from "../queries/useTokenSupply";
 import { useVotingPower } from "../queries/useVotingPower";
 import { useBlockInfo } from "../queries/useBlockInfo";
 import { BlockList } from "../components/BlockList";
+import { ChainInfo } from "../components/ChainInfo";
 import { FaListAlt } from "react-icons/fa";
-import { FaCubes } from "react-icons/fa6";
+import { FaCubes, FaNetworkWired } from "react-icons/fa6";
 import { NAMADA_ADDRESS, PGF_ADDRESS, toDisplayAmount, toDisplayAmountFancy, formatNumberWithCommas } from "../utils";
 import namadaAssets from "@namada/chain-registry/namada/assetlist.json";
 import type { Asset } from "@chain-registry/types";
@@ -47,11 +48,11 @@ export const Index = () => {
   const windowSize = 5;
   const latestBlockInfo = useBlockInfo(latestBlock.data?.block - 1);
   const previousBlockInfo = useBlockInfo(latestBlock.data?.block ? latestBlock.data?.block - 1 - windowSize : null);
-  const avgBlockTime = latestBlockInfo?.data?.timestamp && previousBlockInfo?.data?.timestamp ? 
+  const avgBlockTime = latestBlockInfo?.data?.timestamp && previousBlockInfo?.data?.timestamp ?
     (latestBlockInfo.data.timestamp - previousBlockInfo.data.timestamp) / windowSize : null;
-  
+
   return (
-    <VStack gap={8} align="start">
+    <Stack gap={8}>
       <Box>
         <Heading as="h1" size="xl" mb={3}>
           <Flex gap={2} align="center" color="cyan">
@@ -59,8 +60,8 @@ export const Index = () => {
             Overview
           </Flex>
         </Heading>
-        
-        <Grid 
+
+        <Grid
           templateColumns={{
             base: "repeat(1, 1fr)",
             sm: "repeat(2, 1fr)",
@@ -96,7 +97,17 @@ export const Index = () => {
           </OverviewCard>
         </Grid>
       </Box>
-      
+
+      <Box w="100%">
+        <Heading as="h1" size="xl" mb={3} color="cyan">
+          <Flex gap={2} align="center">
+            <FaNetworkWired />
+            Chain Information (RPC)
+          </Flex>
+        </Heading>
+        <ChainInfo />
+      </Box>
+
       <Box w="100%">
         <Heading as="h1" size="xl" mb={3} color="cyan">
           <Flex gap={2} align="center">
@@ -113,6 +124,6 @@ export const Index = () => {
           />
         )}
       </Box>
-    </VStack>
+    </Stack>
   );
 };
