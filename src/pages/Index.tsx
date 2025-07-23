@@ -2,12 +2,9 @@ import { useLatestBlock } from "../queries/useLatestBlock";
 import { OverviewCard } from "../components/OverviewCard";
 import {
   Box,
-  Button,
   Flex,
   Grid,
   Heading,
-  Icon,
-  Link,
   SkeletonText,
   VStack,
 } from "@chakra-ui/react";
@@ -18,7 +15,7 @@ import { useTokenSupply } from "../queries/useTokenSupply";
 import { useVotingPower } from "../queries/useVotingPower";
 import { useBlockInfo } from "../queries/useBlockInfo";
 import { BlockList } from "../components/BlockList";
-import { FaListAlt, FaExternalLinkAlt } from "react-icons/fa";
+import { FaListAlt } from "react-icons/fa";
 import { FaCubes } from "react-icons/fa6";
 import { NAMADA_ADDRESS, PGF_ADDRESS, toDisplayAmount, toDisplayAmountFancy, formatNumberWithCommas } from "../utils";
 import namadaAssets from "@namada/chain-registry/namada/assetlist.json";
@@ -56,29 +53,12 @@ export const Index = () => {
   return (
     <VStack gap={8} align="start">
       <Box>
-        <Flex justify="space-between" align="center" mb={3}>
-          <Heading as="h1" size="xl">
-            <Flex gap={2} align="center" color="cyan">
-              <FaListAlt />
-              Overview
-            </Flex>
-          </Heading>
-          <Link
-            href="https://metrics.namada.net"
-            target="_blank"
-            rel="noopener noreferrer"
-            _hover={{ textDecoration: "none" }}
-          >
-            <Button
-              colorScheme="cyan"
-              variant="outline"
-              size="sm"
-            >
-              View on-chain metrics
-              <Icon as={FaExternalLinkAlt} ml={2} />
-            </Button>
-          </Link>
-        </Flex>
+        <Heading as="h1" size="xl" mb={3}>
+          <Flex gap={2} align="center" color="cyan">
+            <FaListAlt />
+            Overview
+          </Flex>
+        </Heading>
 
         <Grid
           templateColumns={{

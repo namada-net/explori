@@ -1,4 +1,5 @@
-import { Box, Container, Flex, Stack } from "@chakra-ui/react";
+import { Box, Button, Container, Flex, Icon, Link, Stack } from "@chakra-ui/react";
+import { FaExternalLinkAlt } from "react-icons/fa";
 import { NamadaIcon } from "./NamadaIcon";
 import { Search } from "./Search";
 
@@ -21,6 +22,27 @@ export const Navbar = () => {
             </Box>
             Namada Explorer
           </Flex>
+
+          <Link
+            href="https://metrics.namada.net"
+            target="_blank"
+            rel="noopener noreferrer"
+            _hover={{ textDecoration: "none" }}
+          >
+            <Button
+              colorScheme="cyan"
+              variant="solid"
+              size="sm"
+              bg="cyan.600"
+              color="white"
+              _hover={{ bg: "cyan.500" }}
+              _active={{ bg: "cyan.700" }}
+            >
+              View shielded pool metrics
+              <Icon as={FaExternalLinkAlt} ml={2} />
+            </Button>
+          </Link>
+
           <Box maxW="lg" flex="1">
             <Search />
           </Box>
