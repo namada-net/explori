@@ -47,9 +47,9 @@ export const Index = () => {
   const windowSize = 5;
   const latestBlockInfo = useBlockInfo(latestBlock.data?.block - 1);
   const previousBlockInfo = useBlockInfo(latestBlock.data?.block ? latestBlock.data?.block - 1 - windowSize : null);
-  const avgBlockTime = latestBlockInfo?.data?.timestamp && previousBlockInfo?.data?.timestamp ? 
+  const avgBlockTime = latestBlockInfo?.data?.timestamp && previousBlockInfo?.data?.timestamp ?
     (latestBlockInfo.data.timestamp - previousBlockInfo.data.timestamp) / windowSize : null;
-  
+
   return (
     <VStack gap={8} align="start">
       <Box>
@@ -59,8 +59,8 @@ export const Index = () => {
             Overview
           </Flex>
         </Heading>
-        
-        <Grid 
+
+        <Grid
           templateColumns={{
             base: "repeat(1, 1fr)",
             sm: "repeat(2, 1fr)",
@@ -96,7 +96,7 @@ export const Index = () => {
           </OverviewCard>
         </Grid>
       </Box>
-      
+
       <Box w="100%">
         <Heading as="h1" size="xl" mb={3} color="cyan">
           <Flex gap={2} align="center">
