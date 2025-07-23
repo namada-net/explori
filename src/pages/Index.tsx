@@ -2,9 +2,12 @@ import { useLatestBlock } from "../queries/useLatestBlock";
 import { OverviewCard } from "../components/OverviewCard";
 import {
   Box,
+  Button,
   Flex,
   Grid,
   Heading,
+  Icon,
+  Link,
   SkeletonText,
   VStack,
 } from "@chakra-ui/react";
@@ -15,7 +18,7 @@ import { useTokenSupply } from "../queries/useTokenSupply";
 import { useVotingPower } from "../queries/useVotingPower";
 import { useBlockInfo } from "../queries/useBlockInfo";
 import { BlockList } from "../components/BlockList";
-import { FaListAlt } from "react-icons/fa";
+import { FaListAlt, FaExternalLinkAlt } from "react-icons/fa";
 import { FaCubes } from "react-icons/fa6";
 import { NAMADA_ADDRESS, PGF_ADDRESS, toDisplayAmount, toDisplayAmountFancy, formatNumberWithCommas } from "../utils";
 import namadaAssets from "@namada/chain-registry/namada/assetlist.json";
@@ -47,20 +50,37 @@ export const Index = () => {
   const windowSize = 5;
   const latestBlockInfo = useBlockInfo(latestBlock.data?.block - 1);
   const previousBlockInfo = useBlockInfo(latestBlock.data?.block ? latestBlock.data?.block - 1 - windowSize : null);
-  const avgBlockTime = latestBlockInfo?.data?.timestamp && previousBlockInfo?.data?.timestamp ? 
+  const avgBlockTime = latestBlockInfo?.data?.timestamp && previousBlockInfo?.data?.timestamp ?
     (latestBlockInfo.data.timestamp - previousBlockInfo.data.timestamp) / windowSize : null;
-  
+
   return (
     <VStack gap={8} align="start">
       <Box>
-        <Heading as="h1" size="xl" mb={3}>
-          <Flex gap={2} align="center" color="cyan">
-            <FaListAlt />
-            Overview
-          </Flex>
-        </Heading>
-        
-        <Grid 
+        <Flex justify="space-between" align="center" mb={3}>
+          <Heading as="h1" size="xl">
+            <Flex gap={2} align="center" color="cyan">
+              <FaListAlt />
+              Overview
+            </Flex>
+          </Heading>
+          <Link
+            href="https://metrics.namada.net"
+            target="_blank"
+            rel="noopener noreferrer"
+            _hover={{ textDecoration: "none" }}
+          >
+            <Button
+              colorScheme="cyan"
+              variant="outline"
+              size="sm"
+            >
+              View on-chain metrics
+              <Icon as={FaExternalLinkAlt} ml={2} />
+            </Button>
+          </Link>
+        </Flex>
+
+        <Grid
           templateColumns={{
             base: "repeat(1, 1fr)",
             sm: "repeat(2, 1fr)",
@@ -96,7 +116,7 @@ export const Index = () => {
           </OverviewCard>
         </Grid>
       </Box>
-      
+
       <Box w="100%">
         <Heading as="h1" size="xl" mb={3} color="cyan">
           <Flex gap={2} align="center">
