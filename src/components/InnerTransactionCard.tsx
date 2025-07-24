@@ -16,6 +16,7 @@ const TX_KIND_ALIASES: Record<string, string> = {
   unbond: "Unbond (Unstake)",
   ibcMsgTransfer: "Unshield over IBC",
   ibcTransparentTransfer: "IBC Transfer",
+  claimRewards: "Claim Staking Rewards",
 };
 
 type WrapperTxData = {
