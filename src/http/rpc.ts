@@ -13,7 +13,7 @@ export const initRpcClient = async (): Promise<Sdk> => {
         return rpcClient;
     }
 
-    const rpcUrl = import.meta.env.VITE_RPC_URL || "http://localhost:27657";
+    const rpcUrl = import.meta.env.VITE_RPC_URL || "http://rpc.namada.tududes.com";
     const maspIndexerUrl = import.meta.env.VITE_MASP_INDEXER_URL || "";
     const dbName = "namada-explorer-db";
 

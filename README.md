@@ -28,7 +28,7 @@ Create a `.env.local` file in the project root with the following variables:
 VITE_INDEXER_API_BASE=http://localhost:3000
 
 # Namada RPC URL (for direct chain queries via SDK)
-VITE_RPC_URL=http://localhost:27657
+VITE_RPC_URL=http://rpc.namada.tududes.com
 
 # Optional: MASP Indexer URL (for shielded transactions)
 VITE_MASP_INDEXER_URL=
