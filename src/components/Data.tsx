@@ -1,5 +1,6 @@
 import { Box, Heading, VStack } from "@chakra-ui/react";
 import React from "react";
+import { linkifyText } from "../utils/linkify";
 
 type DataType = {
   title?: string;
@@ -11,9 +12,13 @@ function renderAnything(value: unknown): React.ReactNode {
     return "-";
   }
 
+  if (typeof value === "string") {
+    // Always attempt to linkify strings - function will return original string if no URLs found
+    return linkifyText(value);
+  }
+
   if (
     React.isValidElement(value) ||
-    typeof value === "string" ||
     typeof value === "number" ||
     value === false
   ) {
