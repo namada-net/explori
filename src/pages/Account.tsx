@@ -12,6 +12,7 @@ import {
   Flex,
   Grid,
   GridItem,
+  Skeleton,
 } from "@chakra-ui/react";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { toDisplayAmount } from "../utils";
@@ -22,7 +23,7 @@ import { FaWallet } from "react-icons/fa6";
 import { OverviewCard } from "../components/OverviewCard";
 import { Hash } from "../components/Hash";
 import { useAccountTransactions } from "../queries/useAccountTransactions";
-import { useOsmosisAssets, useOsmosisPrices } from "../queries/useOsmosisPrices";
+import { useOsmosisPrices } from "../queries/useOsmosisPrices";
 
 type UserAsset = {
   address?: string;
@@ -198,21 +199,25 @@ export const Account = () => {
                         })}{" "}
                         {asset.symbol}
                       </Text>
-
-                      <Text fontSize="sm" color="cyan.400">
-                        {(toDisplayAmount(
-                            chainAssetsMap[asset.tokenAddress] as Asset,
-                            new BigNumber(asset.balance),
-                          ).toNumber() 
-                          * (prices?.find(price => price.address === asset.tokenAddress)?.priceUsdc || 0))
-                          .toLocaleString('en-US', {
-                            style: 'currency',
-                            currency: 'USD',
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })}
-                      </Text>
-
+                      {pricesError ? <></>
+                      : pricesLoading ?
+                        <Skeleton height="21px" width="100px" />
+                      : 
+                        <Text fontSize="sm" color="cyan.400">
+                          {(toDisplayAmount(
+                              chainAssetsMap[asset.tokenAddress] as Asset,
+                              new BigNumber(asset.balance),
+                            ).toNumber() 
+                            * (prices?.find(price => price.address === asset.tokenAddress)?.priceUsdc || 0))
+                            .toLocaleString('en-US', {
+                              style: 'currency',
+                              currency: 'USD',
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}
+                        </Text>
+                      }
+                      
                       {asset.name && asset.name !== asset.symbol && (
                         <Text fontSize="sm" color="gray.400">
                           {asset.name}

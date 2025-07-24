@@ -33,7 +33,7 @@ export const useOsmosisPrices = () => {
   return useQuery({
     queryKey: ["assets-with-prices"],
     queryFn: async () => {
-      // Wait for both asset queries to complete
+      // Early validation - if dependencies aren't ready, don't proceed
       if (!namadaAssetsMapQuery.data || !osmosisAssetsQuery.data) {
         throw new Error("Asset data not available");
       }
@@ -59,15 +59,12 @@ export const useOsmosisPrices = () => {
         })
         .filter((base): base is string => base !== undefined);
 
-      const queryString = assetBases.join(',');
-
-      // Skip price fetching if no asset bases found
-      if (!queryString) {
-        return namadaAssetsArray.map(asset => ({
-          ...asset,
-          priceUsdc: null
-        }));
+      // Early validation - if no asset bases found, don't make the API call
+      if (assetBases.length === 0) {
+        throw new Error("No matching asset bases found for price query");
       }
+
+      const queryString = assetBases.join(',');
 
       try {
         const pricesJson = await getUrlJson(`${PRICE_API_URL}?base=${queryString}`);
@@ -102,7 +99,8 @@ export const useOsmosisPrices = () => {
         throw new Error(`Failed to fetch prices: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    enabled: namadaAssetsMapQuery.data && osmosisAssetsQuery.isSuccess,
+    enabled: !namadaAssetsMapQuery.isLoading && osmosisAssetsQuery.isSuccess && 
+             !!namadaAssetsMapQuery.data && !!osmosisAssetsQuery.data,
     staleTime: 30 * 1000, // 30 seconds
     gcTime: 300 * 1000, // 5 minutes
     refetchInterval: 30 * 1000, // Refetch every 30s
