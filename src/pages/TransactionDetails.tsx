@@ -7,6 +7,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import BigNumber from "bignumber.js";
 import { FaArrowRightArrowLeft } from "react-icons/fa6";
 import { useParams } from "react-router";
 import { AccountLink } from "../components/AccountLink";
@@ -15,11 +16,14 @@ import { InnerTransactionCard } from "../components/InnerTransactionCard";
 import { OverviewCard } from "../components/OverviewCard";
 import { TransactionStatusBadge } from "../components/TransactionStatusBadge";
 import { useTransaction } from "../queries/useTransaction";
+import { useChainAssetsMap } from "../queries/useChainAssetsMap";
+import { NAMADA_ADDRESS, toDisplayAmount } from "../utils";
 import type { InnerTransaction } from "../types";
 
 export const TransactionDetails = () => {
   const { hash } = useParams();
   const transaction = useTransaction(hash || "");
+  const { data: chainAssetsMap } = useChainAssetsMap();
 
   if (transaction.isLoading) {
     return (
@@ -93,8 +97,23 @@ export const TransactionDetails = () => {
           {txData?.gasLimit || "N/A"}
         </OverviewCard>
         <OverviewCard title="Gas Used">{txData?.gasUsed || "N/A"}</OverviewCard>
-        <OverviewCard title="Amount per Gas">
-          {txData?.amountPerGasUnit || "N/A"}
+        <OverviewCard title="Fee Paid">
+          {txData?.amountPerGasUnit && txData?.gasLimit && chainAssetsMap
+            ? (() => {
+              const rawFeeAmount = new BigNumber(txData.amountPerGasUnit)
+                .multipliedBy(new BigNumber(txData.gasLimit));
+              const feeAsset = chainAssetsMap[txData.feeToken] || chainAssetsMap[NAMADA_ADDRESS];
+              if (feeAsset) {
+                // NAM amountPerGasUnit is already in display units, other tokens are in base units
+                const isNativeToken = txData.feeToken === NAMADA_ADDRESS || !txData.feeToken;
+                const displayAmount = isNativeToken
+                  ? rawFeeAmount
+                  : toDisplayAmount(feeAsset as any, rawFeeAmount);
+                return `${displayAmount.toFormat()} ${feeAsset.symbol || "NAM"}`;
+              }
+              return `${rawFeeAmount.toFormat()} NAM`;
+            })()
+            : "N/A"}
         </OverviewCard>
         <OverviewCard title="MASP Fee">
           {txData?.maspFeePayment?.[1]?.sources?.[0]?.amount || "N/A"}
