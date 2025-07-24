@@ -30,117 +30,46 @@ type WrapperTxContext = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-const createValueMap = (wrapperContext?: WrapperTxContext): Record<string, Function | undefined> => ({
-  validator: (address: string) => (
-    <PageLink to={validatorUrl(address)}>
-      {shortenHashOrAddress(address)}
-    </PageLink>
-  ),
-  source: (address: string) => (
-    <PageLink to={accountUrl(address)}>
-      {shortenHashOrAddress(address)}
-    </PageLink>
-  ),
-  amount: formatAmount,
-  owner: (address: string) => (
-    <PageLink to={accountUrl(address)}>
-      {shortenHashOrAddress(address)}
-    </PageLink>
-  ),
-  token: (value: string) => {
-    return <Hash hash={value} enableCopy={true} />;
-  },
-  sources: (array: TransactionSource[]) => (
-    <VStack align="start" gap={1}>
-      {array.map((source, index) => {
-        const { data: chainAssetsMap } = useChainAssetsMap();
-        const { owner, amount, token, type, ...rest } = source;
-        return (
-          <VStack key={index} align="start" gap={1}>
-            <HStack gap={2} align="center" minW="100%">
-              <Box minW="200px">
-                <PageLink to={accountUrl(owner)}>
-                  {shortenHashOrAddress(owner)}
-                </PageLink>
-              </Box>
-              <Text color="gray.400">•</Text>
-              <Box>
-                {formatAmount(amount, chainAssetsMap[token] as any)}
-              </Box>
-            </HStack>
-            {Object.keys(rest).length > 0 && (
-              <TransactionDetailsData details={rest} wrapperContext={wrapperContext} />
-            )}
-          </VStack>
-        );
-      })}
-    </VStack>
-  ),
-  targets: (array: TransactionTarget[]) => {
-    const isUnshieldingTransfer = wrapperContext?.kind === "unshieldingTransfer";
+const createValueMap = (wrapperContext?: WrapperTxContext): Record<string, Function | undefined> => {
+  const { data: chainAssetsMap } = useChainAssetsMap();
 
-    return (
+  return {
+    validator: (address: string) => (
+      <PageLink to={validatorUrl(address)}>
+        {shortenHashOrAddress(address)}
+      </PageLink>
+    ),
+    source: (address: string) => (
+      <PageLink to={accountUrl(address)}>
+        {shortenHashOrAddress(address)}
+      </PageLink>
+    ),
+    amount: (value: string, asset?: Asset) => {
+      // For bond/unbond transactions, amounts are always in NAM and need decimal conversion
+      const isBondTransaction = wrapperContext?.kind === "bond" || wrapperContext?.kind === "unbond";
+
+      if (isBondTransaction) {
+        const namAsset = chainAssetsMap[NAMADA_ADDRESS];
+        if (namAsset) {
+          return formatAmount(value, namAsset as any);
+        }
+      }
+
+      // For other transactions, use the provided asset or fallback to raw value
+      return formatAmount(value, asset);
+    },
+    owner: (address: string) => (
+      <PageLink to={accountUrl(address)}>
+        {shortenHashOrAddress(address)}
+      </PageLink>
+    ),
+    token: (value: string) => {
+      return <Hash hash={value} enableCopy={true} />;
+    },
+    sources: (array: TransactionSource[]) => (
       <VStack align="start" gap={1}>
-        {array.map((target, index) => {
-          const { data: chainAssetsMap } = useChainAssetsMap();
-          const { owner, amount, token, type, ...rest } = target;
-
-          // Check if this target matches the fee payment for unshielding transfers
-          let isFeePayment = false;
-          if (isUnshieldingTransfer && wrapperContext) {
-            const matchesFeePayer = owner === wrapperContext.feePayer;
-            const matchesFeeToken = token === wrapperContext.feeToken;
-
-            console.log('Checking fee payment for target:', {
-              index,
-              owner,
-              feePayer: wrapperContext.feePayer,
-              matchesFeePayer,
-              token,
-              feeToken: wrapperContext.feeToken,
-              matchesFeeToken,
-              amount,
-              kind: wrapperContext.kind,
-              isUnshieldingTransfer
-            });
-
-            if (matchesFeePayer && wrapperContext.amountPerGasUnit && wrapperContext.gasLimit) {
-              const calculatedFeeInDisplayUnits = new BigNumber(wrapperContext.amountPerGasUnit)
-                .multipliedBy(new BigNumber(wrapperContext.gasLimit));
-
-              // Convert calculated fee to base units for comparison
-              // For native token, amountPerGasUnit is in display units, so convert back to base units
-              // For other tokens, amountPerGasUnit is already in base units
-              const isNativeToken = token === wrapperContext.feeToken &&
-                token === NAMADA_ADDRESS;
-
-              let calculatedFeeInBaseUnits = calculatedFeeInDisplayUnits;
-              if (isNativeToken && chainAssetsMap[token]) {
-                // Convert from display units back to base units by applying the exponent
-                const asset = chainAssetsMap[token] as any;
-                const displayUnit = asset?.denom_units?.find((unit: any) => unit.denom === asset?.display);
-                if (displayUnit?.exponent) {
-                  calculatedFeeInBaseUnits = calculatedFeeInDisplayUnits.shiftedBy(displayUnit.exponent);
-                }
-              }
-
-              const targetAmount = new BigNumber(amount);
-
-              console.log('Fee calculation comparison:', {
-                targetAmount: targetAmount.toString(),
-                calculatedFeeDisplayUnits: calculatedFeeInDisplayUnits.toString(),
-                calculatedFeeBaseUnits: calculatedFeeInBaseUnits.toString(),
-                amountPerGasUnit: wrapperContext.amountPerGasUnit,
-                gasLimit: wrapperContext.gasLimit,
-                isNativeToken,
-                isEqual: targetAmount.isEqualTo(calculatedFeeInBaseUnits)
-              });
-
-              // Try both exact match and fee token match
-              isFeePayment = targetAmount.isEqualTo(calculatedFeeInBaseUnits) && (matchesFeeToken || !wrapperContext.feeToken);
-            }
-          }
-
+        {array.map((source, index) => {
+          const { owner, amount, token, type, ...rest } = source;
           return (
             <VStack key={index} align="start" gap={1}>
               <HStack gap={2} align="center" minW="100%">
@@ -152,11 +81,6 @@ const createValueMap = (wrapperContext?: WrapperTxContext): Record<string, Funct
                 <Text color="gray.400">•</Text>
                 <Box>
                   {formatAmount(amount, chainAssetsMap[token] as any)}
-                  {isFeePayment && (
-                    <Text as="span" color="gray.400" fontSize="sm" ml={2}>
-                      (Fee Payment)
-                    </Text>
-                  )}
                 </Box>
               </HStack>
               {Object.keys(rest).length > 0 && (
@@ -166,15 +90,106 @@ const createValueMap = (wrapperContext?: WrapperTxContext): Record<string, Funct
           );
         })}
       </VStack>
-    );
-  },
-  shielded_section_hash: (value: string) => {
-    if (!value || value === null || value === undefined) {
-      return <>-</>;
-    }
-    return <>{JSON.stringify(value)}</>;
-  },
-});
+    ),
+    targets: (array: TransactionTarget[]) => {
+      const isUnshieldingTransfer = wrapperContext?.kind === "unshieldingTransfer";
+
+      return (
+        <VStack align="start" gap={1}>
+          {array.map((target, index) => {
+            const { owner, amount, token, type, ...rest } = target;
+
+            // Check if this target matches the fee payment for unshielding transfers
+            let isFeePayment = false;
+            if (isUnshieldingTransfer && wrapperContext) {
+              const matchesFeePayer = owner === wrapperContext.feePayer;
+              const matchesFeeToken = token === wrapperContext.feeToken;
+
+              console.log('Checking fee payment for target:', {
+                index,
+                owner,
+                feePayer: wrapperContext.feePayer,
+                matchesFeePayer,
+                token,
+                feeToken: wrapperContext.feeToken,
+                matchesFeeToken,
+                amount,
+                kind: wrapperContext.kind,
+                isUnshieldingTransfer
+              });
+
+              if (matchesFeePayer && wrapperContext.amountPerGasUnit && wrapperContext.gasLimit) {
+                const calculatedFeeInDisplayUnits = new BigNumber(wrapperContext.amountPerGasUnit)
+                  .multipliedBy(new BigNumber(wrapperContext.gasLimit));
+
+                // Convert calculated fee to base units for comparison
+                // For native token, amountPerGasUnit is in display units, so convert back to base units
+                // For other tokens, amountPerGasUnit is already in base units
+                const isNativeToken = token === wrapperContext.feeToken &&
+                  token === NAMADA_ADDRESS;
+
+                let calculatedFeeInBaseUnits = calculatedFeeInDisplayUnits;
+                if (isNativeToken && chainAssetsMap[token]) {
+                  // Convert from display units back to base units by applying the exponent
+                  const asset = chainAssetsMap[token] as any;
+                  const displayUnit = asset?.denom_units?.find((unit: any) => unit.denom === asset?.display);
+                  if (displayUnit?.exponent) {
+                    calculatedFeeInBaseUnits = calculatedFeeInDisplayUnits.shiftedBy(displayUnit.exponent);
+                  }
+                }
+
+                const targetAmount = new BigNumber(amount);
+
+                console.log('Fee calculation comparison:', {
+                  targetAmount: targetAmount.toString(),
+                  calculatedFeeDisplayUnits: calculatedFeeInDisplayUnits.toString(),
+                  calculatedFeeBaseUnits: calculatedFeeInBaseUnits.toString(),
+                  amountPerGasUnit: wrapperContext.amountPerGasUnit,
+                  gasLimit: wrapperContext.gasLimit,
+                  isNativeToken,
+                  isEqual: targetAmount.isEqualTo(calculatedFeeInBaseUnits)
+                });
+
+                // Try both exact match and fee token match
+                isFeePayment = targetAmount.isEqualTo(calculatedFeeInBaseUnits) && (matchesFeeToken || !wrapperContext.feeToken);
+              }
+            }
+
+            return (
+              <VStack key={index} align="start" gap={1}>
+                <HStack gap={2} align="center" minW="100%">
+                  <Box minW="200px">
+                    <PageLink to={accountUrl(owner)}>
+                      {shortenHashOrAddress(owner)}
+                    </PageLink>
+                  </Box>
+                  <Text color="gray.400">•</Text>
+                  <Box>
+                    {formatAmount(amount, chainAssetsMap[token] as any)}
+                    {isFeePayment && (
+                      <Text as="span" color="gray.400" fontSize="sm" ml={2}>
+                        (Fee Payment)
+                      </Text>
+                    )}
+                  </Box>
+                </HStack>
+                {Object.keys(rest).length > 0 && (
+                  <TransactionDetailsData details={rest} wrapperContext={wrapperContext} />
+                )}
+              </VStack>
+            );
+          })}
+        </VStack>
+      );
+    },
+    shielded_section_hash: (value: string) => {
+      if (!value || value === null || value === undefined) {
+        return <>-</>;
+      }
+      return <>{JSON.stringify(value)}</>;
+    },
+  };
+};
 
 const keyMap = (key: string) => {
   key = key.replace(/_/g, " ");
