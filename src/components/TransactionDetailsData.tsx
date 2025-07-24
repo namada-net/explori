@@ -317,7 +317,7 @@ export const TransactionDetailsData = ({
 
   if (typeof details === "object" && details !== null) {
     return Object.entries(details)
-      .filter(([key, value]) => {
+      .filter(([key, _value]) => {
         // Filter out Native field for ibcTransparentTransfer transactions
         const isIbcTransparentTransfer = wrapperContext?.kind === "ibcTransparentTransfer";
         if (isIbcTransparentTransfer && key.toLowerCase() === "native") {
