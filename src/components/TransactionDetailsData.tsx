@@ -1,5 +1,5 @@
 import type { Asset } from "@chain-registry/types";
-import { VStack } from "@chakra-ui/react";
+import { VStack, HStack, Text, Box } from "@chakra-ui/react";
 import BigNumber from "bignumber.js";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { accountUrl, validatorUrl } from "../routes";
@@ -41,26 +41,58 @@ const valueMap: Record<string, Function | undefined> = {
     return <Hash hash={value} enableCopy={true} />;
   },
   sources: (array: TransactionSource[]) => (
-    <ContentArray
-      array={array}
-      Component={({ details }) => {
+    <VStack align="start" gap={1}>
+      {array.map((source, index) => {
         const { data: chainAssetsMap } = useChainAssetsMap();
-        const { owner, amount, token, ...rest } = details;
+        const { owner, amount, token, type, ...rest } = source;
         return (
-          <>
-            <Data title="Owner" content={valueMap.owner?.(owner)} />
-            <Data
-              title="Amount"
-              content={valueMap.amount?.(amount, chainAssetsMap[token])}
-            />
-            <TransactionDetailsData details={rest} />
-          </>
+          <VStack key={index} align="start" gap={1}>
+            <HStack gap={2} align="center" minW="100%">
+              <Box minW="200px">
+                <PageLink to={accountUrl(owner)}>
+                  {shortenHashOrAddress(owner)}
+                </PageLink>
+              </Box>
+              <Text color="gray.400">•</Text>
+              <Box>
+                {valueMap.amount?.(amount, chainAssetsMap[token])}
+              </Box>
+            </HStack>
+            {Object.keys(rest).length > 0 && (
+              <TransactionDetailsData details={rest} />
+            )}
+          </VStack>
         );
-      }}
-    />
+      })}
+    </VStack>
   ),
   // target and sources render the same
-  targets: (array: TransactionTarget[]) => valueMap.sources?.(array),
+  targets: (array: TransactionTarget[]) => (
+    <VStack align="start" gap={1}>
+      {array.map((target, index) => {
+        const { data: chainAssetsMap } = useChainAssetsMap();
+        const { owner, amount, token, type, ...rest } = target;
+        return (
+          <VStack key={index} align="start" gap={1}>
+            <HStack gap={2} align="center" minW="100%">
+              <Box minW="200px">
+                <PageLink to={accountUrl(owner)}>
+                  {shortenHashOrAddress(owner)}
+                </PageLink>
+              </Box>
+              <Text color="gray.400">•</Text>
+              <Box>
+                {valueMap.amount?.(amount, chainAssetsMap[token])}
+              </Box>
+            </HStack>
+            {Object.keys(rest).length > 0 && (
+              <TransactionDetailsData details={rest} />
+            )}
+          </VStack>
+        );
+      })}
+    </VStack>
+  ),
   shielded_section_hash: (value: string) => {
     return <>{JSON.stringify(value)}</>;
   },
