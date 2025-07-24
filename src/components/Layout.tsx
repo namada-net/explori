@@ -48,7 +48,7 @@ export const Layout = () => {
               icon={<FaPeopleGroup />}
             />
             <MenuItem
-              label="Proposals"
+              label="Governance"
               url="/proposals"
               icon={<FaVoteYea />}
             />

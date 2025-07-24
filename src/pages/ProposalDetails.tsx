@@ -22,19 +22,19 @@ import { ProposalContentCard } from "../components/ProposalContentCard";
 export const ProposalDetails = () => {
   const params = useParams();
   const proposals = useProposals();
-  const lastProposalId = proposals.data?.length > 0 
+  const lastProposalId = proposals.data?.length > 0
     ? Math.max(...proposals.data.map((proposal: any) => parseInt(proposal.id)))
     : 0;
   const currentProposal = parseInt(params.id || "1");
   const proposalInfo = useProposal(parseInt(params.id || "1"));
-  const proposalContent = proposalInfo.data?.content 
+  const proposalContent = proposalInfo.data?.content
     ? JSON.parse(proposalInfo.data.content) as ProposalContent
     : null;
   const votesAsPercent = (votes: string) => {
-    const totalVotes = proposalInfo.data 
-      ? parseInt(proposalInfo.data.yayVotes) + 
-        parseInt(proposalInfo.data.nayVotes) + 
-        parseInt(proposalInfo.data.abstainVotes)
+    const totalVotes = proposalInfo.data
+      ? parseInt(proposalInfo.data.yayVotes) +
+      parseInt(proposalInfo.data.nayVotes) +
+      parseInt(proposalInfo.data.abstainVotes)
       : 0;
     return totalVotes === 0 ? 0 : Number((parseInt(votes) / totalVotes * 100).toFixed(2));
   };
@@ -114,10 +114,7 @@ export const ProposalDetails = () => {
             <OverviewCard title="Type" isLoading={proposalInfo.isLoading}>
               {proposalInfo.data?.type}
             </OverviewCard>
-            <OverviewCard title="Tally Type" isLoading={proposalInfo.isLoading}>
-              {proposalInfo.data?.tallyType}
-            </OverviewCard>
-            <OverviewCard title="Wasm checksum" isLoading={proposalInfo.isLoading}>
+            <OverviewCard title="Wasm data hash" isLoading={proposalInfo.isLoading}>
               {<Hash hash={proposalInfo.data?.data ?? ""} enableCopy={proposalInfo.data?.data ? true : false}></Hash>}
             </OverviewCard>
           </Grid>
