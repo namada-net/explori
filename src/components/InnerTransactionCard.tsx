@@ -14,6 +14,8 @@ const TX_KIND_ALIASES: Record<string, string> = {
   revealPk: "Reveal Public Key",
   transparentTransfer: "Transparent Transfer",
   unbond: "Unbond (Unstake)",
+  ibcMsgTransfer: "Unshield over IBC",
+  ibcTransparentTransfer: "IBC Transfer",
 };
 
 type WrapperTxData = {

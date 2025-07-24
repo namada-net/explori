@@ -103,6 +103,21 @@ const createValueMap = (wrapperContext?: WrapperTxContext): Record<string, Funct
     token: (value: string) => {
       return <Hash hash={value} enableCopy={true} />;
     },
+    data: (value: any) => {
+      const isIbcTransfer = wrapperContext?.kind === "ibcMsgTransfer";
+
+      if (isIbcTransfer && typeof value === "string") {
+        // For IBC transfers, display data as truncated hash with copy functionality
+        return <Hash hash={value} enableCopy={true} />;
+      }
+
+      // For other transaction types, fall back to regular display
+      if (typeof value === "string") {
+        return <span>{value}</span>;
+      }
+
+      return <>{JSON.stringify(value)}</>;
+    },
     sources: (array: TransactionSource[]) => (
       <VStack align="start" gap={1}>
         {array.map((source, index) => {
@@ -249,6 +264,16 @@ const keyMap = (key: string) => {
   return String(key).charAt(0).toUpperCase() + String(key).slice(1);
 };
 
+const getFieldTitle = (key: string, wrapperContext?: WrapperTxContext) => {
+  const isIbcTransfer = wrapperContext?.kind === "ibcMsgTransfer";
+
+  if (isIbcTransfer && key === "data") {
+    return "Data (encoded)";
+  }
+
+  return keyMap(key);
+};
+
 const ContentArray = <T,>({
   array,
   Component,
@@ -291,23 +316,32 @@ export const TransactionDetailsData = ({
   }
 
   if (typeof details === "object" && details !== null) {
-    return Object.entries(details).map(([key, value]) => (
-      <Data
-        key={key}
-        title={keyMap(key)}
-        content={
-          valueMap[key] ? (
-            valueMap[key](value)
-          ) : Array.isArray(value) ? (
-            <ContentArray array={value} Component={({ details }) => (
-              <TransactionDetailsData details={details} wrapperContext={wrapperContext} />
-            )} />
-          ) : (
-            value
-          )
+    return Object.entries(details)
+      .filter(([key, value]) => {
+        // Filter out Native field for ibcTransparentTransfer transactions
+        const isIbcTransparentTransfer = wrapperContext?.kind === "ibcTransparentTransfer";
+        if (isIbcTransparentTransfer && key.toLowerCase() === "native") {
+          return false;
         }
-      />
-    ));
+        return true;
+      })
+      .map(([key, value]) => (
+        <Data
+          key={key}
+          title={getFieldTitle(key, wrapperContext)}
+          content={
+            valueMap[key] ? (
+              valueMap[key](value)
+            ) : Array.isArray(value) ? (
+              <ContentArray array={value} Component={({ details }) => (
+                <TransactionDetailsData details={details} wrapperContext={wrapperContext} />
+              )} />
+            ) : (
+              value
+            )
+          }
+        />
+      ));
   }
 
   return <Data content={details} />;
