@@ -1,9 +1,10 @@
 import type { Asset } from "@chain-registry/types";
-import { VStack, HStack, Text, Box } from "@chakra-ui/react";
+import { VStack, HStack, Text, Box, Image } from "@chakra-ui/react";
 import BigNumber from "bignumber.js";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
+import { useAllValidators } from "../queries/useAllValidators";
 import { accountUrl, validatorUrl } from "../routes";
-import type { TransactionSource, TransactionTarget } from "../types";
+import type { TransactionSource, TransactionTarget, Validator } from "../types";
 import { shortenHashOrAddress, toDisplayAmount, NAMADA_ADDRESS } from "../utils";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
@@ -32,13 +33,49 @@ type WrapperTxContext = {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const createValueMap = (wrapperContext?: WrapperTxContext): Record<string, Function | undefined> => {
   const { data: chainAssetsMap } = useChainAssetsMap();
+  const { data: validators } = useAllValidators();
 
   return {
-    validator: (address: string) => (
-      <PageLink to={validatorUrl(address)}>
-        {shortenHashOrAddress(address)}
-      </PageLink>
-    ),
+    validator: (address: string) => {
+      const validator = validators?.find((v: Validator) => v.address === address);
+      return (
+        <PageLink to={validatorUrl(address)}>
+          <HStack gap={2} align="center">
+            <Box
+              width="20px"
+              height="20px"
+              borderRadius="full"
+              overflow="hidden"
+              bg="gray.600"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              flexShrink={0}
+            >
+              {validator?.avatar ? (
+                <Image
+                  src={validator.avatar}
+                  alt={validator.name || "Validator"}
+                  width="20px"
+                  height="20px"
+                  objectFit="cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <Text fontSize="xs" color="gray.300" fontWeight="medium">
+                  {(validator?.name || "U")[0].toUpperCase()}
+                </Text>
+              )}
+            </Box>
+            <Text>
+              {validator?.name || shortenHashOrAddress(address)}
+            </Text>
+          </HStack>
+        </PageLink>
+      );
+    },
     source: (address: string) => (
       <PageLink to={accountUrl(address)}>
         {shortenHashOrAddress(address)}
