@@ -115,6 +115,13 @@ npm run build
 npm run dev
 ```
 
+**Note**: RPC functionality using the Namada SDK works in **production builds only** due to bundling complexities. During development, you can work on the UI and use your existing indexer API. To test RPC functionality, use:
+
+```bash
+npm run build
+npm run preview
+```
+
 ## Architecture
 
 - **Frontend**: React 18 + TypeScript + Vite
