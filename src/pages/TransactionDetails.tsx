@@ -90,13 +90,12 @@ export const TransactionDetails = () => {
         </Box>
       </Heading>
       <Grid templateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={1}>
-        <OverviewCard title="Fee Payer">
-          <AccountLink address={txData?.feePayer || ""} />
+        <OverviewCard title="Status">
+          <TransactionStatusBadge exitCode={txData?.exitCode} />
         </OverviewCard>
-        <OverviewCard title="Gas Limit">
-          {txData?.gasLimit || "-"}
+        <OverviewCard title="Block Height">
+          {txData?.blockHeight || "-"}
         </OverviewCard>
-        <OverviewCard title="Gas Used">{txData?.gasUsed || "-"}</OverviewCard>
         <OverviewCard title="Fee Paid">
           {txData?.amountPerGasUnit && txData?.gasLimit && chainAssetsMap
             ? (() => {
@@ -115,14 +114,15 @@ export const TransactionDetails = () => {
             })()
             : "-"}
         </OverviewCard>
+        <OverviewCard title="Fee Payer">
+          <AccountLink address={txData?.feePayer || ""} />
+        </OverviewCard>
+        <OverviewCard title="Gas Limit">
+          {txData?.gasLimit || "-"}
+        </OverviewCard>
+        <OverviewCard title="Gas Used">{txData?.gasUsed || "-"}</OverviewCard>
         <OverviewCard title="MASP Fee">
           {txData?.maspFeePayment?.[1]?.sources?.[0]?.amount || "-"}
-        </OverviewCard>
-        <OverviewCard title="Block Height">
-          {txData?.blockHeight || "-"}
-        </OverviewCard>
-        <OverviewCard title="Status">
-          <TransactionStatusBadge exitCode={txData?.exitCode} />
         </OverviewCard>
         <OverviewCard title="Atomic">
           {txData?.atomic === "true" ? "Yes" : "No"}
