@@ -72,3 +72,46 @@ export type ProposalContent = {
   details: string;
   requires: string;
 }
+
+export type RegistryAsset = {
+  description: string;
+  extended_description: string;
+  denom_units: RegistryDenomUnit[];
+  type_asset: string;
+  base: string;
+  name: string;
+  display: string;
+  symbol: string;
+  logo_URIs: {
+    png?: string;
+    svg?: string;
+  };
+  images: {
+    image_sync?: string;
+    png?: string;
+    svg?: string;
+    theme?: {
+      primary_color_hex?: string;
+      background_color_hex?: string;
+      circle?: string;
+      dark_mode?: string;
+      monochrome?: boolean;
+    };
+  }[];
+  coingecko_id: string;
+  keywords: string[];
+  socials: {
+    website?: string;
+    twitter?: string;
+    telegram?: string;
+    discord?: string;
+    github?: string;
+    medium?: string;
+    reddit?: string;
+  }
+}
+
+export type RegistryDenomUnit = {
+  denom: string;
+  exponent: number;
+}
