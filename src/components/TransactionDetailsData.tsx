@@ -94,6 +94,9 @@ const valueMap: Record<string, Function | undefined> = {
     </VStack>
   ),
   shielded_section_hash: (value: string) => {
+    if (!value || value === null || value === undefined) {
+      return <>-</>;
+    }
     return <>{JSON.stringify(value)}</>;
   },
 };

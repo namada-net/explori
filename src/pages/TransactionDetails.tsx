@@ -94,9 +94,9 @@ export const TransactionDetails = () => {
           <AccountLink address={txData?.feePayer || ""} />
         </OverviewCard>
         <OverviewCard title="Gas Limit">
-          {txData?.gasLimit || "N/A"}
+          {txData?.gasLimit || "-"}
         </OverviewCard>
-        <OverviewCard title="Gas Used">{txData?.gasUsed || "N/A"}</OverviewCard>
+        <OverviewCard title="Gas Used">{txData?.gasUsed || "-"}</OverviewCard>
         <OverviewCard title="Fee Paid">
           {txData?.amountPerGasUnit && txData?.gasLimit && chainAssetsMap
             ? (() => {
@@ -113,13 +113,13 @@ export const TransactionDetails = () => {
               }
               return `${rawFeeAmount.toFormat()} NAM`;
             })()
-            : "N/A"}
+            : "-"}
         </OverviewCard>
         <OverviewCard title="MASP Fee">
-          {txData?.maspFeePayment?.[1]?.sources?.[0]?.amount || "N/A"}
+          {txData?.maspFeePayment?.[1]?.sources?.[0]?.amount || "-"}
         </OverviewCard>
         <OverviewCard title="Block Height">
-          {txData?.blockHeight || "N/A"}
+          {txData?.blockHeight || "-"}
         </OverviewCard>
         <OverviewCard title="Status">
           <TransactionStatusBadge exitCode={txData?.exitCode} />

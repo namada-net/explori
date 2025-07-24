@@ -7,12 +7,14 @@ type DataType = {
 };
 
 function renderAnything(value: unknown): React.ReactNode {
+  if (value === null || value === undefined) {
+    return "-";
+  }
+
   if (
     React.isValidElement(value) ||
     typeof value === "string" ||
     typeof value === "number" ||
-    value === null ||
-    value === undefined ||
     value === false
   ) {
     return value;
