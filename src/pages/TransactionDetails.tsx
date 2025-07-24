@@ -121,9 +121,6 @@ export const TransactionDetails = () => {
           {txData?.gasLimit || "-"}
         </OverviewCard>
         <OverviewCard title="Gas Used">{txData?.gasUsed || "-"}</OverviewCard>
-        <OverviewCard title="MASP Fee">
-          {txData?.maspFeePayment?.[1]?.sources?.[0]?.amount || "-"}
-        </OverviewCard>
         <OverviewCard title="Atomic">
           {txData?.atomic === "true" ? "Yes" : "No"}
         </OverviewCard>
