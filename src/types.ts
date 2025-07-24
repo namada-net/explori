@@ -40,3 +40,28 @@ export type TransactionTarget = {
   token: string;
   type: string;
 };
+
+export type Bond = {
+  minDenomAmount: string;
+  validator: Validator;
+  status: string;
+  startEpoch: string;
+};
+
+export type MergedBond = {
+  minDenomAmount: string;
+  validator: Validator;
+  redelegationInfo: {
+    earliestRedelegationEpoch: string;
+    earliestRedelegationTime: string;
+  };
+};
+
+// MergeUnbond has the same structure
+export type Unbond = {
+  minDenomAmount: string;
+  validator: Validator;
+  withdrawEpoch: string;
+  withdrawTime: string;
+  canWithdraw: boolean;
+};
