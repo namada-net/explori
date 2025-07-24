@@ -219,10 +219,26 @@ const createValueMap = (wrapperContext?: WrapperTxContext): Record<string, Funct
         </VStack>
       );
     },
-    shielded_section_hash: (value: string) => {
+    shielded_section_hash: (value: any) => {
       if (!value || value === null || value === undefined) {
         return <>-</>;
       }
+
+      // Check if value is an array of bytes (numbers)
+      if (Array.isArray(value) && value.every((item: any) => typeof item === 'number' && item >= 0 && item <= 255)) {
+        // Convert byte array to hex string
+        const hexString = value
+          .map((byte: number) => byte.toString(16).padStart(2, '0'))
+          .join('');
+
+        return (
+          <Text fontFamily="mono" fontSize="sm">
+            0x{hexString}
+          </Text>
+        );
+      }
+
+      // For other types, fall back to JSON stringify
       return <>{JSON.stringify(value)}</>;
     },
   };
