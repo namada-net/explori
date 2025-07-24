@@ -22,6 +22,7 @@ import { FaWallet } from "react-icons/fa6";
 import { OverviewCard } from "../components/OverviewCard";
 import { Hash } from "../components/Hash";
 import { useAccountTransactions } from "../queries/useAccountTransactions";
+import { useOsmosisAssets, useOsmosisPrices } from "../queries/useOsmosisPrices";
 
 type UserAsset = {
   address?: string;
@@ -48,6 +49,9 @@ export const Account = () => {
 
   const { data: chainAssetsMap, isLoading: chainAssetsLoading } =
     useChainAssetsMap();
+  
+  const { data: prices, isLoading: pricesLoading, error: pricesError } =
+    useOsmosisPrices();
 
   const { data: transactionsData } = useAccountTransactions(address ?? "");
 
@@ -188,8 +192,25 @@ export const Account = () => {
                         {toDisplayAmount(
                           chainAssetsMap[asset.tokenAddress] as Asset,
                           new BigNumber(asset.balance),
-                        ).toNumber()}{" "}
+                        ).toNumber().toLocaleString('en-US', {
+                          minimumFractionDigits: 6,
+                          maximumFractionDigits: 6
+                        })}{" "}
                         {asset.symbol}
+                      </Text>
+
+                      <Text fontSize="sm" color="cyan.400">
+                        {(toDisplayAmount(
+                            chainAssetsMap[asset.tokenAddress] as Asset,
+                            new BigNumber(asset.balance),
+                          ).toNumber() 
+                          * (prices?.find(price => price.address === asset.tokenAddress)?.priceUsdc || 0))
+                          .toLocaleString('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}
                       </Text>
 
                       {asset.name && asset.name !== asset.symbol && (
