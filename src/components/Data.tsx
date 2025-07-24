@@ -8,8 +8,8 @@ type DataType = {
 };
 
 function renderAnything(value: unknown): React.ReactNode {
-  if (React.isValidElement(value)) {
-    return value;
+  if (value === null || value === undefined) {
+    return "-";
   }
 
   if (typeof value === "string") {
@@ -18,9 +18,8 @@ function renderAnything(value: unknown): React.ReactNode {
   }
 
   if (
+    React.isValidElement(value) ||
     typeof value === "number" ||
-    value === null ||
-    value === undefined ||
     value === false
   ) {
     return value;
