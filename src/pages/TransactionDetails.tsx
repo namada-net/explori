@@ -140,6 +140,13 @@ export const TransactionDetails = () => {
                 <InnerTransactionCard
                   key={innerTransaction.txId || `inner-${index}`}
                   innerTransaction={innerTransaction}
+                  wrapperTxData={{
+                    kind: innerTransaction.kind,
+                    feePayer: txData.feePayer,
+                    amountPerGasUnit: txData.amountPerGasUnit,
+                    gasLimit: txData.gasLimit,
+                    feeToken: txData.feeToken,
+                  }}
                 />
               ),
             )}

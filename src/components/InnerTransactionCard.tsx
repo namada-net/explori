@@ -6,12 +6,22 @@ import { TransactionDetailsData } from "./TransactionDetailsData";
 import { TransactionStatusBadge } from "./TransactionStatusBadge";
 import { decodeHexAscii } from "../utils/transactions";
 
+type WrapperTxData = {
+  kind?: string;
+  feePayer?: string;
+  amountPerGasUnit?: string;
+  gasLimit?: string;
+  feeToken?: string;
+};
+
 type InnerTransactionCardProps = {
   innerTransaction: InnerTransaction;
+  wrapperTxData?: WrapperTxData;
 };
 
 export const InnerTransactionCard = ({
   innerTransaction,
+  wrapperTxData,
 }: InnerTransactionCardProps) => {
   return (
     <Grid
@@ -40,7 +50,16 @@ export const InnerTransactionCard = ({
       />
       <Data title="Kind" content={innerTransaction.kind || "unknown"} />
       <Data title="Memo" content={decodeHexAscii(innerTransaction.memo || "") || "-"} />
-      <TransactionDetailsData details={JSON.parse(innerTransaction.data)} />
+      <TransactionDetailsData
+        details={JSON.parse(innerTransaction.data)}
+        wrapperContext={{
+          kind: innerTransaction.kind,  // This should be the inner tx kind like "unshieldingTransfer"
+          feePayer: wrapperTxData?.feePayer,
+          amountPerGasUnit: wrapperTxData?.amountPerGasUnit,
+          gasLimit: wrapperTxData?.gasLimit,
+          feeToken: wrapperTxData?.feeToken,
+        }}
+      />
     </Grid>
   );
 };
