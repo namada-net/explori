@@ -147,7 +147,7 @@ export const Account = () => {
               <Hash hash={address || "-"} enableCopy />
             </OverviewCard>
           </GridItem>
-          <OverviewCard title="Balance (Native Token)">
+          <OverviewCard title="Balance (NAM)">
             {toDisplayAmount(
               namadaAssets.assets[0] as Asset,
               new BigNumber(nativeTokenBalance),
