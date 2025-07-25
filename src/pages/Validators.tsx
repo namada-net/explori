@@ -16,6 +16,7 @@ import {
 import { Table } from "@chakra-ui/react";
 import { FaChevronUp, FaChevronDown, FaDiscord, FaGlobe } from "react-icons/fa";
 import { useValidators } from "../queries/useValidators";
+import { useVotingPower } from "../queries/useVotingPower";
 import { camelCaseToTitleCase, formatNumberWithCommas } from "../utils";
 import { FaPeopleGroup } from "react-icons/fa6";
 import { Pagination } from "../components/Pagination";
@@ -26,12 +27,8 @@ const VALIDATOR_STATES = [
   { value: "consensus", label: "Consensus" },
   { value: "belowCapacity", label: "Below Capacity" },
   { value: "belowThreshold", label: "Below Threshold" },
-  { value: "inactive", label: "Inactive" },
+  { value: "inactive", label: "Deactivated" },
   { value: "jailed", label: "Jailed" },
-  { value: "unknown", label: "Unknown" },
-  { value: "unjailing", label: "Unjailing" },
-  { value: "deactivating", label: "Deactivating" },
-  { value: "reactivating", label: "Reactivating" },
 ];
 
 type SortField = "votingPower" | "commission" | "rank";
@@ -65,6 +62,8 @@ export const Validators = () => {
     isLoading,
     error,
   } = useValidators(page, state, sortField, sortOrder);
+
+  const votingPowerData = useVotingPower();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -238,7 +237,7 @@ export const Validators = () => {
                     userSelect="none"
                   >
                     <HStack justify="flex-end" width="100%">
-                      <Text>Commission</Text>
+                      <Text>Commission Rate</Text>
                       <Box
                         className="sort-icon"
                         opacity={0}
@@ -321,21 +320,20 @@ export const Validators = () => {
                             >
                               {validator.name || "Unknown Validator"}
                             </Text>
-                            {validator.description && (
-                              <Text
-                                fontSize="xs"
-                                color="gray.400"
-                                maxW="300px"
-                                style={{
-                                  display: "-webkit-box",
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: "vertical",
-                                  overflow: "hidden",
-                                }}
-                              >
-                                {validator.description}
-                              </Text>
-                            )}
+                            {(() => {
+                              const totalVotingPower = votingPowerData.data?.totalVotingPower;
+                              const percentage = totalVotingPower && validator.votingPower
+                                ? ((parseFloat(validator.votingPower) / totalVotingPower) * 100).toFixed(2)
+                                : null;
+                              return percentage ? (
+                                <Text
+                                  fontSize="xs"
+                                  color="gray.400"
+                                >
+                                  {percentage}%
+                                </Text>
+                              ) : null;
+                            })()}
                           </VStack>
                         </HStack>
                       </Table.Cell>

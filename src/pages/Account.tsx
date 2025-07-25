@@ -265,7 +265,7 @@ export const Account = () => {
                     </Text>
                     <Text fontSize="sm">
                       <Text as="span" fontWeight="semibold">
-                        Commission:
+                        Commission Rate:
                       </Text>{" "}
                       {account.validator.commission}%
                     </Text>
