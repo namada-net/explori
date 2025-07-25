@@ -2,6 +2,7 @@ import { Grid, GridItem } from "@chakra-ui/react";
 import type { Validator } from "../types";
 import { OverviewCard } from "./OverviewCard";
 import { Hash } from "./Hash";
+import { useVotingPower } from "../queries/useVotingPower";
 
 export const ValidatorInfo = ({
   validator,
@@ -10,6 +11,8 @@ export const ValidatorInfo = ({
   validator: Validator;
   numDelegators: number;
 }) => {
+  const votingPowerData = useVotingPower();
+
   const formatAmount = (amount: string | number) => {
     if (!amount) return "0";
     return parseFloat(amount.toString()).toLocaleString(undefined, {
@@ -30,12 +33,18 @@ export const ValidatorInfo = ({
       </GridItem>
       <OverviewCard title="Rank">#{validator.rank || "-"}</OverviewCard>
       <OverviewCard title="Voting Power">
-        {formatAmount(validator.votingPower)} NAM
+        {(() => {
+          const totalVotingPower = votingPowerData.data?.totalVotingPower;
+          const percentage = totalVotingPower && validator.votingPower
+            ? ((parseFloat(validator.votingPower) / totalVotingPower) * 100).toFixed(2)
+            : null;
+          return `${formatAmount(validator.votingPower)} NAM${percentage ? ` (${percentage}%)` : ''}`;
+        })()}
       </OverviewCard>
-      <OverviewCard title="Commission">
+      <OverviewCard title="Commission Rate">
         {validator.commission ? formatPercentage(validator.commission) : "0%"}
       </OverviewCard>
-      <OverviewCard title="Max Commission">
+      <OverviewCard title="Max Commission Rate Change">
         {validator.maxCommission
           ? formatPercentage(validator.maxCommission)
           : "0%"}

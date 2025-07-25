@@ -5,7 +5,7 @@ import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { useAllValidators } from "../queries/useAllValidators";
 import { accountUrl, validatorUrl } from "../routes";
 import type { TransactionSource, TransactionTarget, Validator } from "../types";
-import { shortenHashOrAddress, toDisplayAmount, NAMADA_ADDRESS } from "../utils";
+import { shortenHashOrAddress, toDisplayAmount, NAMADA_ADDRESS, formatNumberWithCommasAndDecimals } from "../utils";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
 import { PageLink } from "./PageLink";
@@ -15,11 +15,11 @@ const formatAmount = (value: string, asset?: Asset) => {
     const amount = toDisplayAmount(asset as any, BigNumber(value));
     return (
       <span>
-        {amount.toString()} {asset.symbol}
+        {formatNumberWithCommasAndDecimals(amount)} {asset.symbol}
       </span>
     );
   }
-  return <span>{value}</span>;
+  return <span>{formatNumberWithCommasAndDecimals(parseFloat(value))}</span>;
 };
 
 type WrapperTxContext = {

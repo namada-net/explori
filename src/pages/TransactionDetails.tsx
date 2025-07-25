@@ -17,7 +17,7 @@ import { OverviewCard } from "../components/OverviewCard";
 import { TransactionStatusBadge } from "../components/TransactionStatusBadge";
 import { useTransaction } from "../queries/useTransaction";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
-import { NAMADA_ADDRESS, toDisplayAmount } from "../utils";
+import { NAMADA_ADDRESS, toDisplayAmount, formatNumberWithCommas } from "../utils";
 import type { InnerTransaction } from "../types";
 
 export const TransactionDetails = () => {
@@ -94,7 +94,7 @@ export const TransactionDetails = () => {
           <TransactionStatusBadge exitCode={txData?.exitCode} />
         </OverviewCard>
         <OverviewCard title="Block Height">
-          {txData?.blockHeight || "-"}
+          {txData?.blockHeight ? formatNumberWithCommas(txData.blockHeight) : "-"}
         </OverviewCard>
         <OverviewCard title="Fee Paid">
           {txData?.amountPerGasUnit && txData?.gasLimit && chainAssetsMap
@@ -118,9 +118,9 @@ export const TransactionDetails = () => {
           <AccountLink address={txData?.feePayer || ""} />
         </OverviewCard>
         <OverviewCard title="Gas Limit">
-          {txData?.gasLimit || "-"}
+          {txData?.gasLimit ? formatNumberWithCommas(parseInt(txData.gasLimit)) : "-"}
         </OverviewCard>
-        <OverviewCard title="Gas Used">{txData?.gasUsed || "-"}</OverviewCard>
+        <OverviewCard title="Gas Used">{txData?.gasUsed ? formatNumberWithCommas(parseInt(txData.gasUsed)) : "-"}</OverviewCard>
         <OverviewCard title="Atomic">
           {txData?.atomic === "true" ? "Yes" : "No"}
         </OverviewCard>
