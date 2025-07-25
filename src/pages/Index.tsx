@@ -36,13 +36,14 @@ export const Index = () => {
   const { data: prices, isLoading: pricesLoading, error: pricesError } = useOsmosisPrices(0); // disable automatic refetch
   const { data: chainAssetsMap } = useChainAssetsMap();
 
-  // Calculate masp tvl
-  const maspTvl = useMemo(() => {
+  // Calculate masp tvl for non-native and native assets separately
+  const { maspTvlNonNative, maspTvlNative } = useMemo(() => {
     if (!maspBalances.data || !prices || !chainAssetsMap) {
-      return null;
+      return { maspTvlNonNative: null, maspTvlNative: null };
     }
 
-    let totalTvl = 0;
+    let nonNativeTvl = 0;
+    let nativeTvl = 0;
 
     for (const balance of maspBalances.data) {
       // Find the matching asset in chain assets map
@@ -75,11 +76,15 @@ export const Index = () => {
       // Calculate value in USDC
       const value = denominatedAmt * priceEntry.priceUsdc;
       
-      // Add to running total
-      totalTvl += value;
+      // Add to appropriate total based on whether it's NAM or not
+      if (balance.tokenAddress === NAMADA_ADDRESS) {
+        nativeTvl += value;
+      } else {
+        nonNativeTvl += value;
+      }
     }
 
-    return totalTvl;
+    return { maspTvlNonNative: nonNativeTvl, maspTvlNative: nativeTvl };
   }, [maspBalances.data, prices, chainAssetsMap]);
 
   const pgfBalanceNam = pgfBalance.data?.find((b: any) => b.tokenAddress === NAMADA_ADDRESS)?.minDenomAmount ?? null;
@@ -136,8 +141,17 @@ export const Index = () => {
           <OverviewCard title="Effective Supply (NAM)" isLoading={namSupply.isLoading}>
             {toDisplayAmountFancy(namadaAssets.assets[0] as Asset, new BigNumber(namSupply.data?.effectiveSupply))}
           </OverviewCard>
-          <OverviewCard title="Masp Total Value Locked" isLoading={pricesLoading}>
-            {maspTvl && !pricesError ? maspTvl
+          <OverviewCard title="MASP TVL (Non-native)" isLoading={pricesLoading}>
+            {maspTvlNonNative && !pricesError ? maspTvlNonNative
+            .toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) : "Not available"}
+          </OverviewCard>
+          <OverviewCard title="MASP TVL (Native)" isLoading={pricesLoading}>
+            {maspTvlNative && !pricesError ? maspTvlNative
             .toLocaleString('en-US', {
               style: 'currency',
               currency: 'USD',
