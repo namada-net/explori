@@ -38,12 +38,25 @@ export const formatTimestamp = (timestamp: number): string => {
 };
 
 export const formatNumberWithCommas = (num: number | BigNumber): string => {
-  const numericValue = typeof num === 'number' ? num : 
+  const numericValue = typeof num === 'number' ? num :
     (num && typeof num.toNumber === 'function') ? num.toNumber() : Number(num);
   return numericValue.toLocaleString('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
+};
+
+export const formatNumberWithCommasAndDecimals = (num: number | BigNumber, maxDecimals: number = 6): string => {
+  const numericValue = typeof num === 'number' ? num :
+    (num && typeof num.toNumber === 'function') ? num.toNumber() : Number(num);
+
+  // Format with up to maxDecimals decimal places, but remove trailing zeros
+  const formatted = numericValue.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDecimals,
+  });
+
+  return formatted;
 };
 
 const getMagnitudeSuffix = (num: number): string => {
@@ -63,17 +76,17 @@ export const toDisplayAmountFancy = (
 ): string => {
   const displayAmount = toDisplayAmount(asset, baseAmount);
   const numericValue = displayAmount.toNumber();
-  
+
   const formattedWithCommas = numericValue.toLocaleString('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
 
   const magnitudeSuffix = getMagnitudeSuffix(numericValue);
-  
+
   if (magnitudeSuffix) {
     return `${formattedWithCommas} (${magnitudeSuffix})`;
   }
-  
+
   return formattedWithCommas;
 };

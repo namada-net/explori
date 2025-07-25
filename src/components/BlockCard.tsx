@@ -3,7 +3,7 @@ import { Grid } from "@chakra-ui/react";
 import { Data } from "./Data";
 import { useNavigate } from "react-router";
 import { blockUrl } from "../routes";
-import { formatTimestamp } from "../utils";
+import { formatTimestamp, formatNumberWithCommas } from "../utils";
 import { Hash } from "./Hash";
 
 type BlockCardProps = {
@@ -32,7 +32,7 @@ export const BlockCard = ({ blockHeight }: BlockCardProps) => {
       onClick={() => navigate(blockUrl(blockHeight))}
     >
       <Data
-        title={`Block #${blockHeight}`}
+        title={`Block #${formatNumberWithCommas(blockHeight)}`}
         content={<Hash hash={block.data?.hash} />}
       />
       <Data
@@ -41,7 +41,7 @@ export const BlockCard = ({ blockHeight }: BlockCardProps) => {
       />
       <Data
         title="Number of Txs"
-        content={block.data?.transactions.length || 0}
+        content={formatNumberWithCommas(block.data?.transactions.length || 0)}
       />
     </Grid>
   );

@@ -16,7 +16,7 @@ import {
 import { Table } from "@chakra-ui/react";
 import { FaChevronUp, FaChevronDown, FaDiscord, FaGlobe } from "react-icons/fa";
 import { useValidators } from "../queries/useValidators";
-import { camelCaseToTitleCase } from "../utils";
+import { camelCaseToTitleCase, formatNumberWithCommas } from "../utils";
 import { FaPeopleGroup } from "react-icons/fa6";
 import { Pagination } from "../components/Pagination";
 import { validatorUrl } from "../routes";
@@ -354,7 +354,7 @@ export const Validators = () => {
                       </Table.Cell>
                       <Table.Cell textAlign="right" fontWeight="semibold">
                         {validator.votingPower
-                          ? parseFloat(validator.votingPower).toLocaleString()
+                          ? formatNumberWithCommas(parseFloat(validator.votingPower))
                           : "0"}
                       </Table.Cell>
                       <Table.Cell textAlign="right" color="gray.300">

@@ -1,4 +1,4 @@
-import { formatTimestamp } from "../utils";
+import { formatTimestamp, formatNumberWithCommas } from "../utils";
 import { OverviewCard } from "../components/OverviewCard";
 import { useProposal } from "../queries/useProposal";
 import {
@@ -189,7 +189,7 @@ export const ProposalDetails = () => {
                                 <Box>
                                   <Text fontSize="xs" color="gray.400" mb={1}>Amount</Text>
                                   <Text fontWeight="semibold" color="green.300">
-                                    {(parseInt(funding.amount) / 1000000).toLocaleString()} NAM
+                                    {formatNumberWithCommas(parseInt(funding.amount) / 1000000)} NAM
                                   </Text>
                                 </Box>
                               </Flex>
@@ -211,7 +211,7 @@ export const ProposalDetails = () => {
                                 <Box>
                                   <Text fontSize="xs" color="gray.400" mb={1}>Amount</Text>
                                   <Text fontWeight="semibold" color="green.300">
-                                    {(parseInt(funding.amount) / 1000000).toLocaleString()} NAM
+                                    {formatNumberWithCommas(parseInt(funding.amount) / 1000000)} NAM
                                   </Text>
                                 </Box>
                               </Flex>

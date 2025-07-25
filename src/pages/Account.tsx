@@ -16,7 +16,7 @@ import {
   Skeleton,
 } from "@chakra-ui/react";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
-import { toDisplayAmount } from "../utils";
+import { toDisplayAmount, formatNumberWithCommasAndDecimals } from "../utils";
 import type { Asset } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
 import { AccountTransactions } from "../components/AccountTransactions";
@@ -53,7 +53,7 @@ export const Account = () => {
 
   const { data: chainAssetsMap, isLoading: chainAssetsLoading } =
     useChainAssetsMap();
-  
+
   const { data: delegations, error: delegationsError, isLoading: delegationsLoading } =
     useDelegations(address!);
 
@@ -96,7 +96,7 @@ export const Account = () => {
 
   const formatAmount = (amount: string | number) => {
     if (!amount) return "0";
-    return (parseFloat(amount.toString()) / 10**6).toLocaleString(undefined, {
+    return (parseFloat(amount.toString()) / 10 ** 6).toLocaleString(undefined, {
       minimumFractionDigits: 6,
     });
   };
@@ -200,10 +200,10 @@ export const Account = () => {
                       </HStack>
 
                       <Text fontSize="lg">
-                        {toDisplayAmount(
+                        {formatNumberWithCommasAndDecimals(toDisplayAmount(
                           chainAssetsMap[asset.tokenAddress] as Asset,
                           new BigNumber(asset.balance),
-                        ).toNumber()}{" "}
+                        ))}{" "}
                         {asset.symbol}
                       </Text>
 
@@ -289,7 +289,7 @@ export const Account = () => {
           Delegations ({delegations.length})
         </Heading>
 
-        {delegationsError ? 
+        {delegationsError ?
           (
             <Box bg="red.700" color="white" p={4} rounded="md" width="fit-content">
               <Text fontWeight="semibold">Error</Text>
