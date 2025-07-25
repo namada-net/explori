@@ -5,7 +5,7 @@ import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { useAllValidators } from "../queries/useAllValidators";
 import { accountUrl, validatorUrl } from "../routes";
 import type { TransactionSource, TransactionTarget, Validator } from "../types";
-import { shortenHashOrAddress, toDisplayAmount, NAMADA_ADDRESS } from "../utils";
+import { shortenHashOrAddress, toDisplayAmount, NAMADA_ADDRESS, formatNumberWithCommasAndDecimals } from "../utils";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
 import { PageLink } from "./PageLink";
@@ -15,11 +15,11 @@ const formatAmount = (value: string, asset?: Asset) => {
     const amount = toDisplayAmount(asset as any, BigNumber(value));
     return (
       <span>
-        {amount.toString()} {asset.symbol}
+        {formatNumberWithCommasAndDecimals(amount)} {asset.symbol}
       </span>
     );
   }
-  return <span>{value}</span>;
+  return <span>{formatNumberWithCommasAndDecimals(parseFloat(value))}</span>;
 };
 
 type WrapperTxContext = {
@@ -317,7 +317,7 @@ export const TransactionDetailsData = ({
 
   if (typeof details === "object" && details !== null) {
     return Object.entries(details)
-      .filter(([key, value]) => {
+      .filter(([key, _value]) => {
         // Filter out Native field for ibcTransparentTransfer transactions
         const isIbcTransparentTransfer = wrapperContext?.kind === "ibcTransparentTransfer";
         if (isIbcTransparentTransfer && key.toLowerCase() === "native") {

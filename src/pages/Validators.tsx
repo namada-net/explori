@@ -16,7 +16,8 @@ import {
 import { Table } from "@chakra-ui/react";
 import { FaChevronUp, FaChevronDown, FaDiscord, FaGlobe } from "react-icons/fa";
 import { useValidators } from "../queries/useValidators";
-import { camelCaseToTitleCase } from "../utils";
+import { useVotingPower } from "../queries/useVotingPower";
+import { camelCaseToTitleCase, formatNumberWithCommas } from "../utils";
 import { FaPeopleGroup } from "react-icons/fa6";
 import { Pagination } from "../components/Pagination";
 import { validatorUrl } from "../routes";
@@ -26,12 +27,8 @@ const VALIDATOR_STATES = [
   { value: "consensus", label: "Consensus" },
   { value: "belowCapacity", label: "Below Capacity" },
   { value: "belowThreshold", label: "Below Threshold" },
-  { value: "inactive", label: "Inactive" },
+  { value: "inactive", label: "Deactivated" },
   { value: "jailed", label: "Jailed" },
-  { value: "unknown", label: "Unknown" },
-  { value: "unjailing", label: "Unjailing" },
-  { value: "deactivating", label: "Deactivating" },
-  { value: "reactivating", label: "Reactivating" },
 ];
 
 type SortField = "votingPower" | "commission" | "rank";
@@ -65,6 +62,25 @@ export const Validators = () => {
     isLoading,
     error,
   } = useValidators(page, state, sortField, sortOrder);
+
+  const votingPowerData = useVotingPower();
+
+  const getStatusExplanation = (status: string) => {
+    switch (status) {
+      case "consensus":
+        return "the top validators who are permitted to sign new blocks and participate in consensus";
+      case "belowCapacity":
+        return "the next validators waiting to join Consensus if it is full";
+      case "belowThreshold":
+        return "validators with voting power less than the consensus threshold";
+      case "jailed":
+        return "validators jailed due to either slashing or extended downtime";
+      case "inactive":
+        return "validators who willingly removed themselves from consensus consideration";
+      default:
+        return null;
+    }
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -140,7 +156,7 @@ export const Validators = () => {
         <VStack gap={6} align="stretch">
           {/* Controls */}
           <HStack justify="space-between" align="center" wrap="wrap" gap={4}>
-            <HStack gap={4}>
+            <HStack gap={4} align="start">
               <Box>
                 <Text fontSize="sm" color="gray.400" mb={1}>
                   Filter by Status
@@ -163,6 +179,13 @@ export const Validators = () => {
                   <NativeSelect.Indicator />
                 </NativeSelect.Root>
               </Box>
+              {getStatusExplanation(state) && (
+                <Box maxW="400px" mt={6} ml={16}>
+                  <Text fontSize="sm" color="gray.300" fontStyle="italic">
+                    {getStatusExplanation(state)}
+                  </Text>
+                </Box>
+              )}
             </HStack>
           </HStack>
 
@@ -238,7 +261,7 @@ export const Validators = () => {
                     userSelect="none"
                   >
                     <HStack justify="flex-end" width="100%">
-                      <Text>Commission</Text>
+                      <Text>Commission Rate</Text>
                       <Box
                         className="sort-icon"
                         opacity={0}
@@ -321,21 +344,20 @@ export const Validators = () => {
                             >
                               {validator.name || "Unknown Validator"}
                             </Text>
-                            {validator.description && (
-                              <Text
-                                fontSize="xs"
-                                color="gray.400"
-                                maxW="300px"
-                                style={{
-                                  display: "-webkit-box",
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: "vertical",
-                                  overflow: "hidden",
-                                }}
-                              >
-                                {validator.description}
-                              </Text>
-                            )}
+                            {(() => {
+                              const totalVotingPower = votingPowerData.data?.totalVotingPower;
+                              const percentage = totalVotingPower && validator.votingPower
+                                ? ((parseFloat(validator.votingPower) / totalVotingPower) * 100).toFixed(2)
+                                : null;
+                              return percentage ? (
+                                <Text
+                                  fontSize="xs"
+                                  color="gray.400"
+                                >
+                                  {percentage}%
+                                </Text>
+                              ) : null;
+                            })()}
                           </VStack>
                         </HStack>
                       </Table.Cell>
@@ -354,7 +376,7 @@ export const Validators = () => {
                       </Table.Cell>
                       <Table.Cell textAlign="right" fontWeight="semibold">
                         {validator.votingPower
-                          ? parseFloat(validator.votingPower).toLocaleString()
+                          ? formatNumberWithCommas(parseFloat(validator.votingPower))
                           : "0"}
                       </Table.Cell>
                       <Table.Cell textAlign="right" color="gray.300">

@@ -7,7 +7,7 @@ import { useBlockInfo } from "../queries/useBlockInfo";
 import { useLatestBlock } from "../queries/useLatestBlock";
 import { useTransaction } from "../queries/useTransaction";
 import { blockUrl, transactionUrl } from "../routes";
-import { shortenHashOrAddress } from "../utils";
+import { shortenHashOrAddress, formatNumberWithCommas } from "../utils";
 
 const TransactionEntry = ({ txId }: { txId: string }) => {
   const { data, isLoading } = useTransaction(txId);
@@ -31,7 +31,7 @@ const TransactionEntry = ({ txId }: { txId: string }) => {
           title="Block #"
           content={
             <PageLink to={blockUrl(data.blockHeight)}>
-              {data.blockHeight}
+              {formatNumberWithCommas(data.blockHeight)}
             </PageLink>
           }
         />

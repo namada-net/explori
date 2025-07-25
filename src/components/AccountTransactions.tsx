@@ -8,6 +8,8 @@ import {
   camelCaseToTitleCase,
   NAMADA_ADDRESS,
   toDisplayAmount,
+  formatNumberWithCommas,
+  formatNumberWithCommasAndDecimals,
 } from "../utils";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import type { Asset } from "@chain-registry/types";
@@ -135,7 +137,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
   const transactions = transactionsData?.results || [];
   const totalPages = Math.ceil(
     (transactionsData?.pagination.totalItems || 0) /
-      transactionsData?.pagination.perPage,
+    transactionsData?.pagination.perPage,
   );
 
   if (isLoading && currentPage === 1) {
@@ -227,16 +229,16 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                     </Table.Cell>
                     <Table.Cell>
                       <PageLink to={blockUrl(tx.blockHeight)}>
-                        {tx.blockHeight}
+                        {formatNumberWithCommas(tx.blockHeight)}
                       </PageLink>
                     </Table.Cell>
                     <Table.Cell>
                       {transactionInfo?.amount &&
                         namadaAsset &&
-                        toDisplayAmount(
+                        formatNumberWithCommasAndDecimals(toDisplayAmount(
                           namadaAsset as Asset,
                           BigNumber(transactionInfo.amount),
-                        ).toString()}{" "}
+                        ))}{" "}
                       <Text as="span" color="gray.400" fontSize="xs">
                         {tokenSymbol}
                       </Text>
