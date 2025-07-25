@@ -6,6 +6,7 @@ import {
   FaPeopleGroup,
   FaTelegram,
   FaXTwitter,
+  FaBook,
 } from "react-icons/fa6";
 import { FaVoteYea } from "react-icons/fa";
 import { IoSwapHorizontal } from "react-icons/io5";
@@ -62,6 +63,11 @@ export const Layout = () => {
                     <NamadaIcon />
                   </Box>
                 }
+              />
+              <MenuItem
+                label="Documentation"
+                url="https://docs.namada.net"
+                icon={<FaBook />}
               />
               <MenuItem
                 label="X.com"
