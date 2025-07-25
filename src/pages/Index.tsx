@@ -33,7 +33,7 @@ export const Index = () => {
   const maspBalances = useAccount(MASP_ADDRESS);
   const namSupply = useTokenSupply(NAMADA_ADDRESS);
   const votingPower = useVotingPower();
-  const { data: prices, isLoading: pricesLoading, error: pricesError } = useOsmosisPrices();
+  const { data: prices, isLoading: pricesLoading, error: pricesError } = useOsmosisPrices(0); // disable automatic refetch
   const { data: chainAssetsMap } = useChainAssetsMap();
 
   // Calculate masp tvl

@@ -52,7 +52,7 @@ export const Account = () => {
     useChainAssetsMap();
   
   const { data: prices, isLoading: pricesLoading, error: pricesError } =
-    useOsmosisPrices();
+    useOsmosisPrices(0); // disable automatic refetch
 
   const { data: transactionsData } = useAccountTransactions(address ?? "");
 

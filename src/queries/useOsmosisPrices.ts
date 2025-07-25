@@ -26,7 +26,7 @@ export const useOsmosisAssets = () => {
   });
 };
 
-export const useOsmosisPrices = () => {
+export const useOsmosisPrices = (refreshSecs: number = 30) => {
   const namadaAssetsMapQuery = useChainAssetsMap();
   const osmosisAssetsQuery = useOsmosisAssets();
 
@@ -101,8 +101,8 @@ export const useOsmosisPrices = () => {
     },
     enabled: !namadaAssetsMapQuery.isLoading && osmosisAssetsQuery.isSuccess && 
              !!namadaAssetsMapQuery.data && !!osmosisAssetsQuery.data,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: refreshSecs * 1000,
     gcTime: 300 * 1000, // 5 minutes
-    refetchInterval: 30 * 1000, // Refetch every 30s
+    refetchInterval: refreshSecs * 1000, // Refetch every 30s by default
   });
 };
