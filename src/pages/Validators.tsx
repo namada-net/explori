@@ -65,6 +65,23 @@ export const Validators = () => {
 
   const votingPowerData = useVotingPower();
 
+  const getStatusExplanation = (status: string) => {
+    switch (status) {
+      case "consensus":
+        return "the top validators who are permitted to sign new blocks and participate in consensus";
+      case "belowCapacity":
+        return "the next validators waiting to join Consensus if it is full";
+      case "belowThreshold":
+        return "validators with voting power less than the consensus threshold";
+      case "jailed":
+        return "validators jailed due to either slashing or extended downtime";
+      case "inactive":
+        return "validators who willingly removed themselves from consensus consideration";
+      default:
+        return null;
+    }
+  };
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -139,7 +156,7 @@ export const Validators = () => {
         <VStack gap={6} align="stretch">
           {/* Controls */}
           <HStack justify="space-between" align="center" wrap="wrap" gap={4}>
-            <HStack gap={4}>
+            <HStack gap={4} align="start">
               <Box>
                 <Text fontSize="sm" color="gray.400" mb={1}>
                   Filter by Status
@@ -162,6 +179,13 @@ export const Validators = () => {
                   <NativeSelect.Indicator />
                 </NativeSelect.Root>
               </Box>
+              {getStatusExplanation(state) && (
+                <Box maxW="400px" mt={6} ml={16}>
+                  <Text fontSize="sm" color="gray.300" fontStyle="italic">
+                    {getStatusExplanation(state)}
+                  </Text>
+                </Box>
+              )}
             </HStack>
           </HStack>
 
