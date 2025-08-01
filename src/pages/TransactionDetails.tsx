@@ -23,6 +23,11 @@ import type { InnerTransaction } from "../types";
 export const TransactionDetails = () => {
   const { hash } = useParams();
   const transaction = useTransaction(hash || "");
+  const txData = transaction.data;
+  const isInnerTx = txData?.type === "inner";
+  // If this is an inner tx, also get the wrapper tx data
+  const maybeWrapperTransaction = useTransaction(txData?.wrapperId || "")
+  const blockHeight = maybeWrapperTransaction.data?.blockHeight
   const { data: chainAssetsMap } = useChainAssetsMap();
 
   if (transaction.isLoading) {
@@ -46,9 +51,6 @@ export const TransactionDetails = () => {
     );
   }
 
-  const txData = transaction.data;
-  const isInnerTx = txData?.type === "inner";
-
   if (isInnerTx) {
     return (
       <>
@@ -71,7 +73,7 @@ export const TransactionDetails = () => {
             <Heading as="h2" size="lg" mt={8} mb={2}>
               Transaction Data
             </Heading>
-            <InnerTransactionCard innerTransaction={txData} />
+            <InnerTransactionCard innerTransaction={txData} blockHeight={blockHeight} />
           </>
         )}
       </>
@@ -137,6 +139,7 @@ export const TransactionDetails = () => {
                 <InnerTransactionCard
                   key={innerTransaction.txId || `inner-${index}`}
                   innerTransaction={innerTransaction}
+                  blockHeight={txData?.blockHeight}
                   wrapperTxData={{
                     kind: innerTransaction.kind,
                     feePayer: txData.feePayer,

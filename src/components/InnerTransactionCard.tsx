@@ -5,6 +5,8 @@ import { Hash } from "./Hash";
 import { TransactionDetailsData } from "./TransactionDetailsData";
 import { TransactionStatusBadge } from "./TransactionStatusBadge";
 import { decodeHexAscii } from "../utils/transactions";
+import { useBlockResults } from '../queries/useBlockResults';
+import { IbcEventDecoder } from '../utils/ibc-decoder';
 
 // Map of transaction kinds to their display aliases
 const TX_KIND_ALIASES: Record<string, string> = {
@@ -14,7 +16,7 @@ const TX_KIND_ALIASES: Record<string, string> = {
   revealPk: "Reveal Public Key",
   transparentTransfer: "Transparent Transfer",
   unbond: "Unbond (Unstake)",
-  ibcMsgTransfer: "Unshield over IBC",
+  ibcMsgTransfer: "Unknown IBC Message", // TODO: placeholder
   ibcTransparentTransfer: "IBC Transfer",
   claimRewards: "Claim Staking Rewards",
 };
@@ -30,13 +32,37 @@ type WrapperTxData = {
 type InnerTransactionCardProps = {
   innerTransaction: InnerTransaction;
   wrapperTxData?: WrapperTxData;
+  blockHeight?: number;
 };
 
 export const InnerTransactionCard = ({
   innerTransaction,
   wrapperTxData,
+  blockHeight,
 }: InnerTransactionCardProps) => {
   const displayKind = TX_KIND_ALIASES[innerTransaction.kind] || innerTransaction.kind || "unknown";
+  const { data: blockResults } = useBlockResults(blockHeight);
+
+  // Check if we need to parse and/or decode the IBC events from the block results
+  const isIbcTransfer = innerTransaction.kind === "ibcMsgTransfer";
+  let decodedEvent: any = null;
+  if (isIbcTransfer) {
+    // Decode IBC event from block results if possible
+    decodedEvent = IbcEventDecoder.decodeIbcEventByTxHash(
+      innerTransaction.txId ?? "", 
+      blockResults
+    );
+  }
+
+  // Add IBC event display
+  const formattedIbcEvent = (decodedEvent: any) => {
+    if (decodedEvent) {
+      return <pre style={{ fontSize: '12px', overflow: 'auto', maxHeight: '400px' }}>
+        {JSON.stringify(decodedEvent, null, 2)}
+      </pre>;
+    }
+    return <span>No IBC event found</span>;
+  };
 
   return (
     <Box
@@ -85,6 +111,10 @@ export const InnerTransactionCard = ({
             gasLimit: wrapperTxData?.gasLimit,
             feeToken: wrapperTxData?.feeToken,
           }}
+        />
+        <Data
+          title="IBC event"
+          content={formattedIbcEvent(decodedEvent)}
         />
         {/* Memo field - placed last */}
         <Data title="Memo" content={decodeHexAscii(innerTransaction.memo || "") || "-"} />
