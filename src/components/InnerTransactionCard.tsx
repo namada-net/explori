@@ -5,6 +5,7 @@ import { Hash } from "./Hash";
 import { TransactionDetailsData } from "./TransactionDetailsData";
 import { TransactionStatusBadge } from "./TransactionStatusBadge";
 import { decodeHexAscii } from "../utils/transactions";
+import { IbcDecoder, type IbcDisplayEvent } from "../utils/ibcDecoder";
 
 // Map of transaction kinds to their display aliases
 const TX_KIND_ALIASES: Record<string, string> = {
@@ -14,6 +15,9 @@ const TX_KIND_ALIASES: Record<string, string> = {
   revealPk: "Reveal Public Key",
   transparentTransfer: "Transparent Transfer",
   unbond: "Unbond (Unstake)",
+  ibcMsgTransfer: "Unknown IBC Message", // To be replaced with a more descriptive name after decoding the IBC event
+  ibcUnshieldingTransfer: "IBC Unshielding Transfer",
+  ibcShieldingTransfer: "IBC Shielding Transfer",
   ibcTransparentTransfer: "IBC Transfer (transparent)",
   claimRewards: "Claim Staking Rewards",
 };
@@ -35,7 +39,30 @@ export const InnerTransactionCard = ({
   innerTransaction,
   wrapperTxData,
 }: InnerTransactionCardProps) => {
-  const displayKind = TX_KIND_ALIASES[innerTransaction.kind] || innerTransaction.kind || "unknown";
+
+  // Check if we need to parse and/or decode the IBC events from the block results
+  const isIbcTransfer = innerTransaction.kind === "ibcMsgTransfer";
+
+  let ibcDisplayEvent: IbcDisplayEvent | null = null;
+  if (isIbcTransfer) {
+    // decode the 'data' hex string into an ibc message
+    const parsedData = JSON.parse(innerTransaction.data);
+    ibcDisplayEvent = IbcDecoder.decodeIbcDisplayEvent(parsedData.data);
+  }
+
+  // Use IBC event name if available, otherwise use the transaction kind alias
+  const displayKind = ibcDisplayEvent?.name || TX_KIND_ALIASES[innerTransaction.kind] || innerTransaction.kind || "unknown";
+
+  // IBC event display
+  const formattedIbcEvent = (ibcEvent: IbcDisplayEvent) => {
+    return (
+      <div>
+        <pre style={{ fontSize: '12px', overflow: 'auto', maxHeight: '300px' }}>
+          {JSON.stringify(ibcEvent.message, null, 2)}
+        </pre>
+      </div>
+    );
+  };
 
   return (
     <Box
@@ -75,18 +102,32 @@ export const InnerTransactionCard = ({
             />
           }
         />
-        <TransactionDetailsData
-          details={JSON.parse(innerTransaction.data)}
-          wrapperContext={{
-            kind: innerTransaction.kind,  // This should be the inner tx kind like "unshieldingTransfer"
-            feePayer: wrapperTxData?.feePayer,
-            amountPerGasUnit: wrapperTxData?.amountPerGasUnit,
-            gasLimit: wrapperTxData?.gasLimit,
-            feeToken: wrapperTxData?.feeToken,
-          }}
-        />
+        {!ibcDisplayEvent &&
+          <TransactionDetailsData
+            details={JSON.parse(innerTransaction.data)}
+            wrapperContext={{
+              kind: innerTransaction.kind,  // This should be the inner tx kind like "unshieldingTransfer"
+              feePayer: wrapperTxData?.feePayer,
+              amountPerGasUnit: wrapperTxData?.amountPerGasUnit,
+              gasLimit: wrapperTxData?.gasLimit,
+              feeToken: wrapperTxData?.feeToken,
+            }}
+          />
+        }
+        {ibcDisplayEvent &&
+          <Data
+            title="IBC Event Description"
+            content={ibcDisplayEvent.description ?? "Not available"}
+          />
+        }
         {/* Memo field - placed last */}
         <Data title="Memo" content={decodeHexAscii(innerTransaction.memo || "") || "-"} />
+        {ibcDisplayEvent &&
+          <Data
+            title="IBC Event Contents"
+            content={formattedIbcEvent(ibcDisplayEvent)}
+          />
+        }
       </Grid>
     </Box>
   );

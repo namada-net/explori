@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.6.2",
     "@chain-registry/types": "^0.45.80",
     "@chakra-ui/react": "^3.21.0",
     "@emotion/react": "^11.14.0",
@@ -21,6 +22,7 @@
     "date-fns": "^4.1.0",
     "jotai": "^2.12.5",
     "next-themes": "^0.4.6",
+    "protobufjs": "^7.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
