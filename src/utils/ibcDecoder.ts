@@ -119,11 +119,6 @@ interface IbcHeight {
   revisionHeight: number;
 }
 
-interface IbcChannelCounterparty {
-  portId: string;
-  channelId?: string;
-}
-
 interface IbcChannelOpenInitMessage {
   type: 'channel_open_init';
   portIdOnA: string;
@@ -1397,7 +1392,7 @@ export class IbcDecoder {
   /**
    * Calculate size of Height structure
    */
-  private static getHeightSize(height: IbcHeight): number {
+  private static getHeightSize(_height: IbcHeight): number {
     return 8 + 8; // revision_number (u64) + revision_height (u64)
   }
 
@@ -1422,7 +1417,7 @@ export class IbcDecoder {
   /**
    * Calculate size of ChannelOrder (Borsh enum)
    */
-  private static getChannelOrderSize(ordering: 'none' | 'unordered' | 'ordered'): number {
+  private static getChannelOrderSize(_ordering: 'none' | 'unordered' | 'ordered'): number {
     return 1; // discriminant only
   }
 
