@@ -281,6 +281,12 @@ type DecodedIbcMessage =
   | IbcTimeoutOnCloseMessage
   | IbcRecvMessage;
 
+interface IbcDisplayEvent {
+  name: string;
+  description: string;
+  message: DecodedIbcMessage;
+}
+
 export class IbcDecoder {
 
   /**
@@ -395,8 +401,6 @@ export class IbcDecoder {
       // Second byte: Specific message discriminant  
       const messageDiscriminant = bytes[1];
 
-      console.log(`MsgEnvelope discriminant: ${envelopeDiscriminant}, Message discriminant: ${messageDiscriminant}`);
-
       // Start content parsing at offset 2
       const contentOffset = 2;
 
@@ -425,6 +429,164 @@ export class IbcDecoder {
     } catch (error) {
       console.error('Failed to decode IBC message:', error);
       return null;
+    }
+  }
+
+  /**
+   * Decode IBC message and return with display information
+   */
+  static decodeIbcDisplayEvent(hexData: string): IbcDisplayEvent | null {
+    const decodedMessage = this.decodeIbcMessage(hexData);
+    if (!decodedMessage) {
+      return null;
+    }
+
+    const displayInfo = this.generateDisplayInfo(decodedMessage);
+    return {
+      name: displayInfo.name,
+      description: displayInfo.description,
+      message: decodedMessage
+    };
+  }
+
+  /**
+   * Generate human-readable name and description for decoded IBC messages
+   */
+  private static generateDisplayInfo(message: DecodedIbcMessage): { name: string; description: string } {
+    switch (message.type) {
+      // Client messages
+      case 'create_client':
+        return {
+          name: 'IBC Create Client',
+          description: `Create new IBC client for ${message.clientState?.decodedMessage?.chainId ?? "unknown"}`
+        };
+
+      case 'update_client':
+        // Try to extract chain ID from the decoded client message
+        let chainId = '';
+        try {
+          if (message.clientMessage?.decodedMessage?.signedHeader?.header?.chainId) {
+            chainId = ` for ${message.clientMessage.decodedMessage.signedHeader.header.chainId}`;
+          }
+        } catch (error) {
+          // If we can't extract chain ID, just continue without it
+        }
+        
+        return {
+          name: 'IBC Update Client',
+          description: `Update client ${message.clientId}${chainId}`
+        };
+
+      case 'upgrade_client':
+        return {
+          name: 'IBC Upgrade Client',
+          description: `Upgrade client ${message.clientId}`
+        };
+
+      case 'submit_misbehaviour':
+        return {
+          name: 'IBC Submit Misbehaviour',
+          description: `Submit misbehaviour evidence for client ${message.clientId}`
+        };
+
+      case 'recover_client':
+        return {
+          name: 'IBC Recover Client',
+          description: `Recover client ${message.subjectClientId} using substitute ${message.substituteClientId}`
+        };
+
+      // Connection messages
+      case 'connection_open_init':
+        return {
+          name: 'IBC Connection Open Init',
+          description: `Initialize connection with client ${message.clientIdOnA}`
+        };
+
+      case 'connection_open_try':
+        return {
+          name: 'IBC Connection Open Try',
+          description: `Try to open connection with client ${message.clientIdOnB}`
+        };
+
+      case 'connection_open_ack':
+        return {
+          name: 'IBC Connection Open Ack',
+          description: `Acknowledge connection ${message.connectionIdOnA} ↔ ${message.connectionIdOnB}`
+        };
+
+      case 'connection_open_confirm':
+        return {
+          name: 'IBC Connection Open Confirm',
+          description: `Confirm connection ${message.connectionIdOnB}`
+        };
+
+      // Channel messages
+      case 'channel_open_init':
+        return {
+          name: 'IBC Channel Open Init',
+          description: `Initialize channel ${message.portIdOnA} ↔ ${message.portIdOnB}`
+        };
+
+      case 'channel_open_try':
+        return {
+          name: 'IBC Channel Open Try',
+          description: `Try to open channel ${message.portIdOnB}/${message.channelIdOnA}`
+        };
+
+      case 'channel_open_ack':
+        return {
+          name: 'IBC Channel Open Ack',
+          description: `Acknowledge channel ${message.portIdOnA}/${message.channelIdOnA} ↔ ${message.channelIdOnB}`
+        };
+
+      case 'channel_open_confirm':
+        return {
+          name: 'IBC Channel Open Confirm',
+          description: `Confirm channel ${message.portIdOnB}/${message.channelIdOnB}`
+        };
+
+      case 'channel_close_init':
+        return {
+          name: 'IBC Channel Close Init',
+          description: `Initialize closing of channel ${message.portIdOnA}/${message.channelIdOnA}`
+        };
+
+      case 'channel_close_confirm':
+        return {
+          name: 'IBC Channel Close Confirm',
+          description: `Confirm closing of channel ${message.portIdOnB}/${message.channelIdOnB}`
+        };
+
+      // Packet messages
+      case 'recv':
+        return {
+          name: 'IBC Receive Packet',
+          description: `Receive packet #${message.packet.sequence} on ${message.packet.destPort}/${message.packet.destChannel}`
+        };
+
+      case 'ack':
+        return {
+          name: 'IBC Acknowledge Packet',
+          description: `Acknowledge packet #${message.packet.sequence} from ${message.packet.sourcePort}/${message.packet.sourceChannel}`
+        };
+
+      case 'timeout':
+        return {
+          name: 'IBC Timeout Packet',
+          description: `Timeout packet #${message.packet.sequence} from ${message.packet.sourcePort}/${message.packet.sourceChannel}`
+        };
+
+      case 'timeout_on_close':
+        return {
+          name: 'IBC Timeout On Close',
+          description: `Timeout packet #${message.packet.sequence} due to channel close`
+        };
+
+      default:
+        return {
+          name: 'Unknown IBC Message',
+          description: `Unknown IBC message type: ${(message as any).type}`
+        };
     }
   }
 
@@ -2314,5 +2476,5 @@ export class IbcDecoder {
   }
 }
 
-export type { DecodedNestedMessage, ProtobufAny };
+export type { DecodedNestedMessage, ProtobufAny, IbcDisplayEvent };
 

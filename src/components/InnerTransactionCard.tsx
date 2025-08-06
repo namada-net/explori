@@ -5,7 +5,7 @@ import { Hash } from "./Hash";
 import { TransactionDetailsData } from "./TransactionDetailsData";
 import { TransactionStatusBadge } from "./TransactionStatusBadge";
 import { decodeHexAscii } from "../utils/transactions";
-import { IbcDecoder } from "../utils/ibcDecoder";
+import { IbcDecoder, type IbcDisplayEvent } from "../utils/ibcDecoder";
 
 // Map of transaction kinds to their display aliases
 const TX_KIND_ALIASES: Record<string, string> = {
@@ -15,8 +15,10 @@ const TX_KIND_ALIASES: Record<string, string> = {
   revealPk: "Reveal Public Key",
   transparentTransfer: "Transparent Transfer",
   unbond: "Unbond (Unstake)",
-  ibcMsgTransfer: "Unknown IBC Message", // TODO: placeholder
+  ibcMsgTransfer: "Unknown IBC Message", // To be replaced with a more descriptive name after decoding the IBC event
   ibcTransparentTransfer: "IBC Transfer",
+  ibcUnshieldingTransfer: "IBC Unshielding Transfer",
+  ibcShieldingTransfer: "IBC Shielding Transfer",
   claimRewards: "Claim Staking Rewards",
 };
 
@@ -37,26 +39,29 @@ export const InnerTransactionCard = ({
   innerTransaction,
   wrapperTxData,
 }: InnerTransactionCardProps) => {
-  const displayKind = TX_KIND_ALIASES[innerTransaction.kind] || innerTransaction.kind || "unknown";
 
   // Check if we need to parse and/or decode the IBC events from the block results
   const isIbcTransfer = innerTransaction.kind === "ibcMsgTransfer";
 
-  let decodedIbcMsg = null;
+  let ibcDisplayEvent: IbcDisplayEvent | null = null;
   if (isIbcTransfer) {
     // decode the 'data' hex string into an ibc message
     const parsedData = JSON.parse(innerTransaction.data);
-    decodedIbcMsg = IbcDecoder.decodeIbcMessage(parsedData.data);
+    ibcDisplayEvent = IbcDecoder.decodeIbcDisplayEvent(parsedData.data);
   }
 
+  // Use IBC event name if available, otherwise use the transaction kind alias
+  const displayKind = ibcDisplayEvent?.name || TX_KIND_ALIASES[innerTransaction.kind] || innerTransaction.kind || "unknown";
+
   // IBC event display
-  const formattedIbcEvent = (decodedIbcMsg: any) => {
-    if (decodedIbcMsg) {
-      return <pre style={{ fontSize: '12px', overflow: 'auto', maxHeight: '400px' }}>
-        {JSON.stringify(decodedIbcMsg, null, 2)}
-      </pre>;
-    }
-    return <span>No IBC event found</span>;
+  const formattedIbcEvent = (ibcEvent: IbcDisplayEvent) => {
+    return (
+      <div>
+        <pre style={{ fontSize: '12px', overflow: 'auto', maxHeight: '300px' }}>
+          {JSON.stringify(ibcEvent.message, null, 2)}
+        </pre>
+      </div>
+    );
   };
 
   return (
@@ -107,10 +112,16 @@ export const InnerTransactionCard = ({
             feeToken: wrapperTxData?.feeToken,
           }}
         />
-        {decodedIbcMsg &&
+        {ibcDisplayEvent &&
           <Data
-          title="IBC Event"
-          content={formattedIbcEvent(decodedIbcMsg)}
+          title="IBC Event Description"
+          content={ibcDisplayEvent.description ?? "Not available"}
+          />
+        }
+        {ibcDisplayEvent &&
+          <Data
+          title="IBC Event Contents"
+          content={formattedIbcEvent(ibcDisplayEvent)}
           />
         }
         {/* Memo field - placed last */}
