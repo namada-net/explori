@@ -102,30 +102,32 @@ export const InnerTransactionCard = ({
             />
           }
         />
-        <TransactionDetailsData
-          details={JSON.parse(innerTransaction.data)}
-          wrapperContext={{
-            kind: innerTransaction.kind,  // This should be the inner tx kind like "unshieldingTransfer"
-            feePayer: wrapperTxData?.feePayer,
-            amountPerGasUnit: wrapperTxData?.amountPerGasUnit,
-            gasLimit: wrapperTxData?.gasLimit,
-            feeToken: wrapperTxData?.feeToken,
-          }}
-        />
-        {ibcDisplayEvent &&
-          <Data
-          title="IBC Event Description"
-          content={ibcDisplayEvent.description ?? "Not available"}
+        {!ibcDisplayEvent &&
+          <TransactionDetailsData
+            details={JSON.parse(innerTransaction.data)}
+            wrapperContext={{
+              kind: innerTransaction.kind,  // This should be the inner tx kind like "unshieldingTransfer"
+              feePayer: wrapperTxData?.feePayer,
+              amountPerGasUnit: wrapperTxData?.amountPerGasUnit,
+              gasLimit: wrapperTxData?.gasLimit,
+              feeToken: wrapperTxData?.feeToken,
+            }}
           />
         }
         {ibcDisplayEvent &&
           <Data
-          title="IBC Event Contents"
-          content={formattedIbcEvent(ibcDisplayEvent)}
+            title="IBC Event Description"
+            content={ibcDisplayEvent.description ?? "Not available"}
           />
         }
         {/* Memo field - placed last */}
         <Data title="Memo" content={decodeHexAscii(innerTransaction.memo || "") || "-"} />
+        {ibcDisplayEvent &&
+          <Data
+            title="IBC Event Contents"
+            content={formattedIbcEvent(ibcDisplayEvent)}
+          />
+        }
       </Grid>
     </Box>
   );
