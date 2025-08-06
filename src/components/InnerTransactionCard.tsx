@@ -5,8 +5,7 @@ import { Hash } from "./Hash";
 import { TransactionDetailsData } from "./TransactionDetailsData";
 import { TransactionStatusBadge } from "./TransactionStatusBadge";
 import { decodeHexAscii } from "../utils/transactions";
-import { useBlockResults } from '../queries/useBlockResults';
-import { IbcEventDecoder } from '../utils/ibc-decoder';
+import { IbcDecoder } from "../utils/ibcDecoder";
 
 // Map of transaction kinds to their display aliases
 const TX_KIND_ALIASES: Record<string, string> = {
@@ -32,33 +31,29 @@ type WrapperTxData = {
 type InnerTransactionCardProps = {
   innerTransaction: InnerTransaction;
   wrapperTxData?: WrapperTxData;
-  blockHeight?: number;
 };
 
 export const InnerTransactionCard = ({
   innerTransaction,
   wrapperTxData,
-  blockHeight,
 }: InnerTransactionCardProps) => {
   const displayKind = TX_KIND_ALIASES[innerTransaction.kind] || innerTransaction.kind || "unknown";
-  const { data: blockResults } = useBlockResults(blockHeight);
 
   // Check if we need to parse and/or decode the IBC events from the block results
   const isIbcTransfer = innerTransaction.kind === "ibcMsgTransfer";
-  let decodedEvent: any = null;
+
+  let decodedIbcMsg = null;
   if (isIbcTransfer) {
-    // Decode IBC event from block results if possible
-    decodedEvent = IbcEventDecoder.decodeIbcEventByTxHash(
-      innerTransaction.txId ?? "", 
-      blockResults
-    );
+    // decode the 'data' hex string into an ibc message
+    const parsedData = JSON.parse(innerTransaction.data);
+    decodedIbcMsg = IbcDecoder.decodeIbcMessage(parsedData.data);
   }
 
-  // Add IBC event display
-  const formattedIbcEvent = (decodedEvent: any) => {
-    if (decodedEvent) {
+  // IBC event display
+  const formattedIbcEvent = (decodedIbcMsg: any) => {
+    if (decodedIbcMsg) {
       return <pre style={{ fontSize: '12px', overflow: 'auto', maxHeight: '400px' }}>
-        {JSON.stringify(decodedEvent, null, 2)}
+        {JSON.stringify(decodedIbcMsg, null, 2)}
       </pre>;
     }
     return <span>No IBC event found</span>;
@@ -112,10 +107,12 @@ export const InnerTransactionCard = ({
             feeToken: wrapperTxData?.feeToken,
           }}
         />
-        <Data
-          title="IBC event"
-          content={formattedIbcEvent(decodedEvent)}
-        />
+        {decodedIbcMsg &&
+          <Data
+          title="IBC Event"
+          content={formattedIbcEvent(decodedIbcMsg)}
+          />
+        }
         {/* Memo field - placed last */}
         <Data title="Memo" content={decodeHexAscii(innerTransaction.memo || "") || "-"} />
       </Grid>
