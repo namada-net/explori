@@ -8,8 +8,10 @@ https://namada.world/
 
 ## Build
 
+- copy `.env.sample` and modify it
 - `npm run build`
 
 ## Development
 
+- copy `.env.sample` and modify it
 - `npm run dev`

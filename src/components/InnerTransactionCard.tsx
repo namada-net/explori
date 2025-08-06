@@ -16,9 +16,9 @@ const TX_KIND_ALIASES: Record<string, string> = {
   transparentTransfer: "Transparent Transfer",
   unbond: "Unbond (Unstake)",
   ibcMsgTransfer: "Unknown IBC Message", // To be replaced with a more descriptive name after decoding the IBC event
-  ibcTransparentTransfer: "IBC Transfer",
   ibcUnshieldingTransfer: "IBC Unshielding Transfer",
   ibcShieldingTransfer: "IBC Shielding Transfer",
+  ibcTransparentTransfer: "IBC Transfer (transparent)",
   claimRewards: "Claim Staking Rewards",
 };
 
