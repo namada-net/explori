@@ -92,6 +92,11 @@ export const toDisplayAmountFancy = (
   return formattedWithCommas;
 };
 
+/* 
+The next two methods bytesToSignedLittleEndianBigInt and convertAbciAmount can be used to decode the return value
+of an abci query if it's known to be a simple integer (eg: the Amount type for token balances). We don't need it
+right now but leaving it here in case it's needed in the future.
+
 // Converts a byte array to a signed BigInt in little-endian format
 const bytesToSignedLittleEndianBigInt = (bytes: Uint8Array): bigint => {
   // Check if the most significant bit is set (negative number)
@@ -138,3 +143,4 @@ export const convertAbciAmount = (base64String: string): bigint => {
     return BigInt(0);
   }
 };
+*/
