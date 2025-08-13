@@ -1,4 +1,4 @@
-import { Grid, Text, Box } from "@chakra-ui/react";
+import { Grid, Text, Box, useDisclosure } from "@chakra-ui/react";
 import type { InnerTransaction } from "../types";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
@@ -39,6 +39,7 @@ export const InnerTransactionCard = ({
   innerTransaction,
   wrapperTxData,
 }: InnerTransactionCardProps) => {
+  const { open, onToggle } = useDisclosure({ defaultOpen: false });
 
   // Check if we need to parse and/or decode the IBC events from the block results
   const isIbcTransfer = innerTransaction.kind === "ibcMsgTransfer";
@@ -53,14 +54,60 @@ export const InnerTransactionCard = ({
   // Use IBC event name if available, otherwise use the transaction kind alias
   const displayKind = ibcDisplayEvent?.name || TX_KIND_ALIASES[innerTransaction.kind] || innerTransaction.kind || "unknown";
 
-  // IBC event display
+  // IBC event display with expandable functionality
   const formattedIbcEvent = (ibcEvent: IbcDisplayEvent) => {
+    const jsonString = JSON.stringify(ibcEvent.message, null, 2);
+    const lines = jsonString.split('\n');
+    const previewLines = lines.slice(0, 5); // Show first 5 lines as preview
+    const hasMoreLines = lines.length > 5;
+
     return (
-      <div>
-        <pre style={{ fontSize: '12px', overflow: 'auto', maxHeight: '300px' }}>
-          {JSON.stringify(ibcEvent.message, null, 2)}
-        </pre>
-      </div>
+      <Box
+        cursor={hasMoreLines ? 'pointer' : 'default'}
+        onClick={hasMoreLines ? onToggle : undefined}
+        _hover={hasMoreLines ? { bg: 'gray.700' } : {}}
+        p={2}
+        rounded="md"
+        transition="background-color 0.2s"
+        position="relative"
+        minWidth={400}
+      >
+        <Box position="relative">
+          <pre style={{ fontSize: '12px', overflow: 'auto', maxHeight: open ? 'none' : '120px' }}>
+            {open ? jsonString : (
+              <>
+                {previewLines.map((line, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      color: `rgba(255, 255, 255, ${1 - (index * 0.15)})`,
+                    }}
+                  >
+                    {line}
+                  </div>
+                ))}
+              </>
+            )}
+          </pre>
+          {!open && hasMoreLines && (
+            <Box
+              position="absolute"
+              bottom={0}
+              left={0}
+              right={0}
+              height="40px"
+              background="linear-gradient(transparent, gray.800)"
+              pointerEvents="none"
+            />
+          )}
+        </Box>
+        {!open && hasMoreLines && (
+          <Text fontSize="xs" color="gray.400" mt={2} textAlign="center">
+            {`(${lines.length - 5} more lines, click to expand)`}
+          </Text>
+        )}
+
+      </Box>
     );
   };
 
