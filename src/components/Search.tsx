@@ -24,7 +24,7 @@ const SearchResult = ({ onClick, children }: SearchResultProps) => {
   return (
     <Flex
       gap={3}
-      alignItems="center"
+      alignItems="flex-start"
       py={2}
       px={4}
       w="100%"
@@ -81,9 +81,11 @@ export const Search = () => {
           position="absolute"
           top="100%"
           mt={2}
-          right="0"
-          w="110%"
+          left="-1px"
+          right="-1px"
           bg="gray.950"
+          border="1px solid"
+          borderColor="gray.700"
           rounded="sm"
           px={2}
           py={2}
@@ -114,7 +116,12 @@ export const Search = () => {
                   <Box as="span" color="yellow">
                     <FaWallet />
                   </Box>
-                  <Text>
+                  <Text
+                    wordBreak="break-all"
+                    overflow="hidden"
+                    flex="1"
+                    minW="0"
+                  >
                     Account:
                     <br />
                     {account}
@@ -131,7 +138,12 @@ export const Search = () => {
                   <Box as="span" color="yellow">
                     <FaArrowRightArrowLeft />
                   </Box>
-                  <Text>
+                  <Text
+                    wordBreak="break-all"
+                    overflow="hidden"
+                    flex="1"
+                    minW="0"
+                  >
                     Transaction:
                     <br /> <Hash hash={tx} />
                   </Text>
@@ -147,7 +159,14 @@ export const Search = () => {
                   <Box as="span" color="yellow">
                     <FaCubes />
                   </Box>
-                  <Text>Block #{block}</Text>
+                  <Text
+                    wordBreak="break-all"
+                    overflow="hidden"
+                    flex="1"
+                    minW="0"
+                  >
+                    Block #{block}
+                  </Text>
                 </SearchResult>
               ))}
             </VStack>
@@ -163,7 +182,12 @@ export const Search = () => {
                   <Box as="span" color="yellow">
                     <FaUser />
                   </Box>
-                  <Text>
+                  <Text
+                    wordBreak="break-all"
+                    overflow="hidden"
+                    flex="1"
+                    minW="0"
+                  >
                     Validator:
                     <br />
                     {v.name}
