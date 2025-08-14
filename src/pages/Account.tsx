@@ -20,12 +20,14 @@ import { toDisplayAmount, formatNumberWithCommasAndDecimals } from "../utils";
 import type { Asset } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
 import { AccountTransactions } from "../components/AccountTransactions";
-import { FaWallet } from "react-icons/fa6";
+import { FaWallet, FaUser } from "react-icons/fa6";
 import { OverviewCard } from "../components/OverviewCard";
 import { Hash } from "../components/Hash";
 import { useAccountTransactions } from "../queries/useAccountTransactions";
 import { useDelegations } from "../queries/useDelegations";
 import type { CombinedDelegation } from "../queries/useDelegations";
+import { useAllValidators } from "../queries/useAllValidators";
+import type { Validator } from "../types";
 
 type UserAsset = {
   address?: string;
@@ -58,6 +60,11 @@ export const Account = () => {
     useDelegations(address!);
 
   const { data: transactionsData } = useAccountTransactions(address ?? "");
+  const allValidators = useAllValidators();
+  const matchingValidator: Validator | undefined = useMemo(() => {
+    const list = (allValidators.data as Validator[]) || [];
+    return list.find((v: Validator) => v.address === address);
+  }, [allValidators.data, address]);
 
   const isLoading = accountLoading || chainAssetsLoading;
   const totalTransactionCount = transactionsData?.pagination.totalItems || 0;
@@ -139,6 +146,56 @@ export const Account = () => {
           Account Details
         </Flex>
       </Heading>
+
+      {matchingValidator && (
+        <Box
+          bg="gray.900"
+          border="1px solid"
+          borderColor="gray.800"
+          p={3}
+          rounded="md"
+          mb={4}
+        >
+          <HStack gap={3} align="start">
+            <Box flexShrink={0}>
+              {matchingValidator.avatar ? (
+                <img
+                  src={matchingValidator.avatar}
+                  alt={matchingValidator.name || "Validator"}
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    objectFit: 'cover'
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <FaUser />
+              )}
+            </Box>
+            <VStack gap={1} align="start" flex={1}>
+              <Text>
+                This account is also a validator{matchingValidator.name ? ` (${matchingValidator.name})` : ""}
+              </Text>
+              <Text
+                color="blue.300"
+                cursor="pointer"
+                fontSize="sm"
+                _hover={{
+                  color: "blue.200",
+                  textDecoration: "underline",
+                }}
+                onClick={() => navigate(`/validators/${address}`)}
+              >
+                View validator page →
+              </Text>
+            </VStack>
+          </HStack>
+        </Box>
+      )}
 
       <VStack gap={8} align="stretch">
         <Grid templateColumns="1fr 1fr 1fr 1fr 1fr" gap={2}>

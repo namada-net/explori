@@ -8,10 +8,13 @@ import {
   FaCubes,
   FaRegFaceFrown,
   FaWallet,
+  FaUser,
 } from "react-icons/fa6";
 import { useNavigate } from "react-router";
-import { accountUrl, blockUrl, transactionUrl } from "../routes";
+import { accountUrl, blockUrl, transactionUrl, validatorUrl } from "../routes";
 import { Hash } from "./Hash";
+import { useValidatorNameMatchesFuzzy } from "../queries/useAllValidators";
+import type { Validator } from "../types";
 
 type SearchResultProps = {
   onClick?: () => void;
@@ -21,7 +24,7 @@ const SearchResult = ({ onClick, children }: SearchResultProps) => {
   return (
     <Flex
       gap={3}
-      alignItems="center"
+      alignItems="flex-start"
       py={2}
       px={4}
       w="100%"
@@ -40,11 +43,15 @@ export const Search = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [debouncedSearch] = useDebounce(searchValue, 500);
   const search = useSearchValue(debouncedSearch.toLowerCase());
+  const { matches: matchedValidators } = useValidatorNameMatchesFuzzy(
+    debouncedSearch,
+  );
   const emptyResults =
     search.isSuccess &&
     search.data.transactions.length +
       search.data.blocks.length +
-      search.data.accounts.length ===
+      search.data.accounts.length +
+      matchedValidators.length ===
       0;
 
   useEffect(() => {
@@ -63,7 +70,7 @@ export const Search = () => {
     <Box position="relative" onClick={(e) => e.stopPropagation()}>
       <InputGroup flex="1" startElement={<LuSearch />}>
         <Input
-          placeholder="Search by address, block number or transaction hash"
+          placeholder="Search by address, block number, tx hash, or validator name"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           onFocus={() => setIsFocused(true)}
@@ -74,9 +81,11 @@ export const Search = () => {
           position="absolute"
           top="100%"
           mt={2}
-          right="0"
-          w="110%"
+          left="-1px"
+          right="-1px"
           bg="gray.950"
+          border="1px solid"
+          borderColor="gray.700"
           rounded="sm"
           px={2}
           py={2}
@@ -107,7 +116,12 @@ export const Search = () => {
                   <Box as="span" color="yellow">
                     <FaWallet />
                   </Box>
-                  <Text>
+                  <Text
+                    wordBreak="break-all"
+                    overflow="hidden"
+                    flex="1"
+                    minW="0"
+                  >
                     Account:
                     <br />
                     {account}
@@ -124,7 +138,12 @@ export const Search = () => {
                   <Box as="span" color="yellow">
                     <FaArrowRightArrowLeft />
                   </Box>
-                  <Text>
+                  <Text
+                    wordBreak="break-all"
+                    overflow="hidden"
+                    flex="1"
+                    minW="0"
+                  >
                     Transaction:
                     <br /> <Hash hash={tx} />
                   </Text>
@@ -140,7 +159,41 @@ export const Search = () => {
                   <Box as="span" color="yellow">
                     <FaCubes />
                   </Box>
-                  <Text>Block #{block}</Text>
+                  <Text
+                    wordBreak="break-all"
+                    overflow="hidden"
+                    flex="1"
+                    minW="0"
+                  >
+                    Block #{block}
+                  </Text>
+                </SearchResult>
+              ))}
+            </VStack>
+          )}
+
+          {!!matchedValidators.length && (
+            <VStack gap={2} alignItems="start">
+              {matchedValidators.map((v: Validator) => (
+                <SearchResult
+                  key={v.address}
+                  onClick={() => goTo(validatorUrl(v.address))}
+                >
+                  <Box as="span" color="yellow">
+                    <FaUser />
+                  </Box>
+                  <Text
+                    wordBreak="break-all"
+                    overflow="hidden"
+                    flex="1"
+                    minW="0"
+                  >
+                    Validator:
+                    <br />
+                    {v.name}
+                    <br />
+                    <Hash hash={v.address} />
+                  </Text>
                 </SearchResult>
               ))}
             </VStack>

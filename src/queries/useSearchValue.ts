@@ -6,6 +6,7 @@ type SearchResult = {
   blocks: string[];
   transactions: string[];
   accounts: string[];
+  validators: string[];
 };
 
 export const useSearchValue = (search: string) => {
@@ -18,6 +19,7 @@ export const useSearchValue = (search: string) => {
         blocks: [],
         transactions: [],
         accounts: [],
+        validators: [],
       };
 
       // only query blocks if the search is a number
@@ -59,6 +61,9 @@ export const useSearchValue = (search: string) => {
       } catch {
         /* empty */
       }
+
+      // validator name search is handled in the Search component using
+      // the cached list from useAllValidators for better performance.
 
       return output;
     },
