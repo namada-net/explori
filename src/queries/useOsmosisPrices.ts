@@ -42,7 +42,7 @@ export const useOsmosisPrices = (refreshSecs: number = 30) => {
       const osmosisAssets = osmosisAssetsQuery.data;
 
       // Find USDC base from osmosis assets
-      const usdcAsset = osmosisAssets.find(asset => asset.symbol === "USDC");
+      const usdcAsset = osmosisAssets.find(asset => asset.coingecko_id === "usd-coin");
       if (!usdcAsset) {
         throw new Error("USDC asset not found in Osmosis assets");
       }
