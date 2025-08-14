@@ -10,6 +10,7 @@ export const camelCaseToTitleCase = (str: string) => {
 
 export const NAMADA_ADDRESS = "tnam1q9gr66cvu4hrzm0sd5kmlnjje82gs3xlfg3v6nu7";
 export const PGF_ADDRESS = "tnam1pgqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkhgajr";
+export const MASP_ADDRESS = "tnam1pcqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzmefah";
 
 export const shortenHashOrAddress = (hash: string | null, length = 10) => {
   if (!hash) return "-";
@@ -90,3 +91,56 @@ export const toDisplayAmountFancy = (
 
   return formattedWithCommas;
 };
+
+/* 
+The next two methods bytesToSignedLittleEndianBigInt and convertAbciAmount can be used to decode the return value
+of an abci query if it's known to be a simple integer (eg: the Amount type for token balances). We don't need it
+right now but leaving it here in case it's needed in the future.
+
+// Converts a byte array to a signed BigInt in little-endian format
+const bytesToSignedLittleEndianBigInt = (bytes: Uint8Array): bigint => {
+  // Check if the most significant bit is set (negative number)
+  const isNegative = (bytes[bytes.length - 1] & 0x80) !== 0;
+  
+  let value = BigInt(0);
+  
+  // Convert from little-endian to BigInt
+  for (let i = 0; i < bytes.length; i++) {
+    value += BigInt(bytes[i]) << BigInt(i * 8);
+  }
+  
+  // If negative, convert to two's complement
+  if (isNegative) {
+    const maxValue = BigInt(1) << BigInt(bytes.length * 8);
+    value = value - maxValue;
+  }
+  
+  return value;
+};
+
+// Deserialize a "value" string from an Abci query if it's known to be an Amount
+export const convertAbciAmount = (base64String: string): bigint => {
+  if (!base64String) return BigInt(0);
+
+  try {
+    // Decode base64 to bytes
+    const bytes = Uint8Array.from(atob(base64String), c => c.charCodeAt(0));
+    
+    // For I256 (signed 256-bit integer), we expect 32 bytes
+    if (bytes.length !== 32) {
+      console.error("Invalid byte length for I256 deserialization:", bytes.length);
+      return BigInt(0);
+    }
+
+    // Convert to signed BigInt
+    const amount = bytesToSignedLittleEndianBigInt(bytes);
+    
+    // Ensure the amount is non-negative (amounts shouldn't be negative)
+    return amount >= 0 ? amount : BigInt(0);
+    
+  } catch (error) {
+    console.error(`Error deserializing ABCI amount from base64 "${base64String}":`, error);
+    return BigInt(0);
+  }
+};
+*/
