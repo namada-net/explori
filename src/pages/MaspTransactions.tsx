@@ -10,7 +10,7 @@ import { Hash } from "../components/Hash";
 import { PageLink } from "../components/PageLink";
 import { AccountLink } from "../components/AccountLink";
 import { blockUrl, transactionUrl } from "../routes";
-import { camelCaseToTitleCase, MASP_ADDRESS, toDisplayAmount, formatNumberWithCommasAndDecimals } from "../utils";
+import { camelCaseToTitleCase, MASP_ADDRESS, toDisplayAmount, formatNumberWithCommasAndDecimals, getAgeFromTimestamp } from "../utils";
 import type { Asset } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
 
@@ -18,39 +18,16 @@ import BigNumber from "bignumber.js";
 const getTransactionKindColor = (kind: string): string => {
   const colorMap: Record<string, string> = {
     "shieldedTransfer": "yellow",
-    "shieldingTransfer": "purple", 
+    "shieldingTransfer": "purple",
     "unshieldingTransfer": "orange",
     "ibcShieldingTransfer": "cyan",
     "ibcUnshieldingTransfer": "pink",
   };
-  
+
   return colorMap[kind] || "gray";
 };
 
-// Utility function to calculate human-readable age
-const getAgeFromTimestamp = (timestamp: string): string => {
-  const now = new Date();
-  // Convert string timestamp to number (Unix timestamp in seconds)
-  const timestampSeconds = parseInt(timestamp, 10);
-  // Convert to milliseconds for JavaScript Date
-  const txTime = new Date(timestampSeconds * 1000);
-  const diffMs = now.getTime() - txTime.getTime();
-  
-  const seconds = Math.floor(diffMs / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  
-  if (days > 0) {
-    return `${days} day${days > 1 ? 's' : ''} ago`;
-  } else if (hours > 0) {
-    return `${hours} hr${hours > 1 ? 's' : ''} ago`;
-  } else if (minutes > 0) {
-    return `${minutes} min${minutes > 1 ? 's' : ''} ago`;
-  } else {
-    return `${seconds} sec${seconds > 1 ? 's' : ''} ago`;
-  }
-};
+
 
 export const MaspTransactions = () => {
   const navigate = useNavigate();
@@ -78,7 +55,7 @@ export const MaspTransactions = () => {
   // Transaction kinds for filtering
   const transactionKinds = [
     "shieldedTransfer",
-    "shieldingTransfer", 
+    "shieldingTransfer",
     "unshieldingTransfer",
     "ibcShieldingTransfer",
     "ibcUnshieldingTransfer"
@@ -168,20 +145,20 @@ export const MaspTransactions = () => {
             <Text color="gray.300" fontSize="sm">
               Showing transactions from blocks {startBlock} - {endBlock}
             </Text>
-            
+
             <HStack gap={2}>
-                             {/* Token Filter Dropdown */}
-               <Menu.Root closeOnSelect={false}>
-                 <Menu.Trigger asChild>
-                   <Button size="sm" variant="surface" colorPalette="gray">
-                     {selectedTokens.size === 0 ? "All Tokens" : `${selectedTokens.size} selected`}
-                   </Button>
-                 </Menu.Trigger>
-                 <Menu.Positioner>
-                   <Menu.Content p={3} bg="gray.800" borderColor="gray.700">
-                     <Button size="xs" variant="ghost" onClick={resetTokenFilters} mb={2} color="cyan.400" _hover={{ bg: "gray.700" }}>
-                       Reset
-                     </Button>
+              {/* Token Filter Dropdown */}
+              <Menu.Root closeOnSelect={false}>
+                <Menu.Trigger asChild>
+                  <Button size="sm" variant="surface" colorPalette="gray">
+                    {selectedTokens.size === 0 ? "All Tokens" : `${selectedTokens.size} selected`}
+                  </Button>
+                </Menu.Trigger>
+                <Menu.Positioner>
+                  <Menu.Content p={3} bg="gray.800" borderColor="gray.700">
+                    <Button size="xs" variant="ghost" onClick={resetTokenFilters} mb={2} color="cyan.400" _hover={{ bg: "gray.700" }}>
+                      Reset
+                    </Button>
                     <VStack align="start" maxH="300px" overflowY="auto" gap={2}>
                       {assetList.map(({ address, symbol }) => (
                         <HStack key={address} w="full" cursor="pointer" onClick={() => toggleToken(address)}>
@@ -196,18 +173,18 @@ export const MaspTransactions = () => {
                 </Menu.Positioner>
               </Menu.Root>
 
-                             {/* Transaction Kind Filter Dropdown */}
-               <Menu.Root closeOnSelect={false}>
-                 <Menu.Trigger asChild>
-                   <Button size="sm" variant="surface" colorPalette="gray">
-                     {selectedKinds.size === 0 ? "All Types" : `${selectedKinds.size} selected`}
-                   </Button>
-                 </Menu.Trigger>
-                 <Menu.Positioner>
-                   <Menu.Content p={3} bg="gray.800" borderColor="gray.700">
-                     <Button size="xs" variant="ghost" onClick={resetKindFilters} mb={2} color="cyan.400" _hover={{ bg: "gray.700" }}>
-                       Reset
-                     </Button>
+              {/* Transaction Kind Filter Dropdown */}
+              <Menu.Root closeOnSelect={false}>
+                <Menu.Trigger asChild>
+                  <Button size="sm" variant="surface" colorPalette="gray">
+                    {selectedKinds.size === 0 ? "All Types" : `${selectedKinds.size} selected`}
+                  </Button>
+                </Menu.Trigger>
+                <Menu.Positioner>
+                  <Menu.Content p={3} bg="gray.800" borderColor="gray.700">
+                    <Button size="xs" variant="ghost" onClick={resetKindFilters} mb={2} color="cyan.400" _hover={{ bg: "gray.700" }}>
+                      Reset
+                    </Button>
                     <VStack align="start" maxH="300px" overflowY="auto" gap={2}>
                       {transactionKinds.map((kind) => (
                         <HStack key={kind} w="full" cursor="pointer" onClick={() => toggleKind(kind)}>
@@ -258,7 +235,7 @@ export const MaspTransactions = () => {
                 <Table.Body>
                   {filteredTransactions.map((tx) => {
                     const tokenAsset = tx.token ? chainAssetsMap[tx.token] : null;
-                    
+
                     return (
                       <Table.Row
                         key={`${tx.txId}-${tx.kind}-${tx.blockHeight}`}

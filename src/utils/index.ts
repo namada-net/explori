@@ -38,6 +38,30 @@ export const formatTimestamp = (timestamp: number): string => {
   return format(time, "PPpp");
 };
 
+export const getAgeFromTimestamp = (timestamp: string): string => {
+  const now = new Date();
+  // Convert string timestamp to number (Unix timestamp in seconds)
+  const timestampSeconds = parseInt(timestamp, 10);
+  // Convert to milliseconds for JavaScript Date
+  const txTime = new Date(timestampSeconds * 1000);
+  const diffMs = now.getTime() - txTime.getTime();
+
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) {
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  } else if (hours > 0) {
+    return `${hours} hr${hours > 1 ? 's' : ''} ago`;
+  } else if (minutes > 0) {
+    return `${minutes} min${minutes > 1 ? 's' : ''} ago`;
+  } else {
+    return `${seconds} sec${seconds > 1 ? 's' : ''} ago`;
+  }
+};
+
 export const formatNumberWithCommas = (num: number | BigNumber): string => {
   const numericValue = typeof num === 'number' ? num :
     (num && typeof num.toNumber === 'function') ? num.toNumber() : Number(num);
