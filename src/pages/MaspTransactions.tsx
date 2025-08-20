@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, Text, VStack, Spinner, Badge, HStack, Button, Menu, Checkbox } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text, VStack, Spinner, Badge, HStack, Button, Menu, Checkbox, Tooltip } from "@chakra-ui/react";
 import { Table } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
@@ -7,10 +7,9 @@ import { useMaspTransactionsPage } from "../queries/useMaspTransactions";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { Pagination } from "../components/Pagination";
 import { Hash } from "../components/Hash";
-import { PageLink } from "../components/PageLink";
 import { AccountLink } from "../components/AccountLink";
-import { blockUrl, transactionUrl } from "../routes";
-import { camelCaseToTitleCase, MASP_ADDRESS, toDisplayAmount, formatNumberWithCommasAndDecimals, getAgeFromTimestamp } from "../utils";
+import { transactionUrl } from "../routes";
+import { camelCaseToTitleCase, MASP_ADDRESS, toDisplayAmount, formatNumberWithCommasAndDecimals, getAgeFromTimestamp, formatTimestamp } from "../utils";
 import type { Asset } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
 
@@ -221,15 +220,14 @@ export const MaspTransactions = () => {
               <Table.Root variant="outline" size="sm">
                 <Table.Header>
                   <Table.Row>
-                    <Table.ColumnHeader color="gray.300">Hash</Table.ColumnHeader>
-                    <Table.ColumnHeader color="gray.300">Type</Table.ColumnHeader>
-                    <Table.ColumnHeader color="gray.300">Result</Table.ColumnHeader>
-                    <Table.ColumnHeader color="gray.300">Block</Table.ColumnHeader>
                     <Table.ColumnHeader color="gray.300">Age</Table.ColumnHeader>
-                    <Table.ColumnHeader color="gray.300">From</Table.ColumnHeader>
-                    <Table.ColumnHeader color="gray.300">To</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.300">Type</Table.ColumnHeader>
                     <Table.ColumnHeader color="gray.300">Amount</Table.ColumnHeader>
                     <Table.ColumnHeader color="gray.300">Token</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.300">From</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.300">To</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.300">Result</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.300">Hash</Table.ColumnHeader>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -244,8 +242,23 @@ export const MaspTransactions = () => {
                         cursor="pointer"
                         onClick={() => navigate(transactionUrl(tx.innerTxId || tx.txId))}
                       >
-                        <Table.Cell py={4}>
-                          <Hash hash={tx.innerTxId || tx.txId} />
+                        <Table.Cell>
+                          {tx.timestamp ? (
+                            <Tooltip.Root openDelay={0} closeDelay={0}>
+                              <Tooltip.Trigger asChild>
+                                <Text fontSize="xs" color="gray.400">
+                                  {getAgeFromTimestamp(tx.timestamp)}
+                                </Text>
+                              </Tooltip.Trigger>
+                              <Tooltip.Positioner>
+                                <Tooltip.Content bg="gray.700" color="white" px={2} py={1} rounded="md" fontSize="sm">
+                                  {formatTimestamp(parseInt(tx.timestamp, 10))}
+                                </Tooltip.Content>
+                              </Tooltip.Positioner>
+                            </Tooltip.Root>
+                          ) : (
+                            <Text fontSize="xs" color="gray.500">-</Text>
+                          )}
                         </Table.Cell>
                         <Table.Cell>
                           <Badge
@@ -256,56 +269,6 @@ export const MaspTransactions = () => {
                           >
                             {camelCaseToTitleCase(tx.kind)}
                           </Badge>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Badge
-                            variant="subtle"
-                            colorPalette={tx.exitCode === "applied" ? "green" : "red"}
-                            fontSize="xs"
-                            textTransform="capitalize"
-                          >
-                            {tx.exitCode}
-                          </Badge>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <PageLink to={blockUrl(tx.blockHeight)}>{tx.blockHeight}</PageLink>
-                        </Table.Cell>
-                        <Table.Cell>
-                          {tx.timestamp ? (
-                            <Text fontSize="xs" color="gray.400">
-                              {getAgeFromTimestamp(tx.timestamp)}
-                            </Text>
-                          ) : (
-                            <Text fontSize="xs" color="gray.500">-</Text>
-                          )}
-                        </Table.Cell>
-                        <Table.Cell>
-                          {tx.source ? (
-                            tx.source === MASP_ADDRESS || tx.source === "MASP" ? (
-                              <HStack gap={1} align="center">
-                                <FaShieldAlt color="#22d3ee" size={12} />
-                                <Text fontWeight="medium" color="cyan.400">MASP</Text>
-                              </HStack>
-                            ) : (
-                              <AccountLink address={tx.source} />
-                            )
-                          ) : (
-                            <Text color="gray.500">-</Text>
-                          )}
-                        </Table.Cell>
-                        <Table.Cell>
-                          {tx.target ? (
-                            tx.target === MASP_ADDRESS || tx.target === "MASP" ? (
-                              <HStack gap={1} align="center">
-                                <FaShieldAlt color="#22d3ee" size={12} />
-                                <Text fontWeight="medium" color="cyan.400">MASP</Text>
-                              </HStack>
-                            ) : (
-                              <AccountLink address={tx.target} />
-                            )
-                          ) : (
-                            <Text color="gray.500">-</Text>
-                          )}
                         </Table.Cell>
                         <Table.Cell>
                           {tx.kind === "shieldedTransfer" ? (
@@ -335,6 +298,52 @@ export const MaspTransactions = () => {
                           ) : (
                             <Text color="gray.500">-</Text>
                           )}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {tx.source ? (
+                            tx.source === MASP_ADDRESS || tx.source === "MASP" || tx.kind === "ibcUnshieldingTransfer" ? (
+                              <HStack gap={1} align="center">
+                                <FaShieldAlt color="#22d3ee" size={12} />
+                                <Text fontWeight="medium" color="cyan.400">MASP</Text>
+                              </HStack>
+                            ) : (
+                              <AccountLink address={tx.source} />
+                            )
+                          ) : (
+                            <Text color="gray.500">-</Text>
+                          )}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {tx.target ? (
+                            tx.target === MASP_ADDRESS || tx.target === "MASP" ? (
+                              <HStack gap={1} align="center">
+                                <FaShieldAlt color="#22d3ee" size={12} />
+                                <Text fontWeight="medium" color="cyan.400">MASP</Text>
+                              </HStack>
+                            ) : (
+                              <AccountLink address={tx.target} />
+                            )
+                          ) : (
+                            <Text color="gray.500">-</Text>
+                          )}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Badge
+                            variant="subtle"
+                            colorPalette={tx.exitCode === "applied" ? "green" : "red"}
+                            fontSize="xs"
+                            textTransform="capitalize"
+                          >
+                            {tx.exitCode}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell py={4}>
+                          <Text fontSize="sm" color="gray.400">
+                            {(() => {
+                              const hash = tx.innerTxId || tx.txId;
+                              return hash ? `${hash.slice(0, 6)}...${hash.slice(-6)}` : "-";
+                            })()}
+                          </Text>
                         </Table.Cell>
                       </Table.Row>
                     );
