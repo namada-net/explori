@@ -8,7 +8,7 @@ import {
   FaXTwitter,
   FaBook,
 } from "react-icons/fa6";
-import { FaVoteYea } from "react-icons/fa";
+import { FaVoteYea, FaShieldAlt } from "react-icons/fa";
 import { IoSwapHorizontal } from "react-icons/io5";
 import { Outlet } from "react-router";
 import { MenuItem } from "./MenuItem";
@@ -42,6 +42,11 @@ export const Layout = () => {
               label="Transactions"
               url="/transactions"
               icon={<IoSwapHorizontal />}
+            />
+            <MenuItem
+              label="MASP Transactions"
+              url="/masp-transactions"
+              icon={<FaShieldAlt />}
             />
             <MenuItem
               label="Validators"

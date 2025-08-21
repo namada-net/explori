@@ -9,6 +9,7 @@ import { Account } from "./pages/Account";
 import { BlockDetails } from "./pages/BlockDetails";
 import { Blocks } from "./pages/Blocks";
 import { Index } from "./pages/Index";
+import { MaspTransactions } from "./pages/MaspTransactions";
 import { Proposals } from "./pages/Proposals";
 import { ProposalDetails } from "./pages/ProposalDetails";
 import { TransactionDetails } from "./pages/TransactionDetails";
@@ -19,6 +20,7 @@ import {
   accountUrl,
   blocksUrl,
   blockUrl,
+  maspTransactionsUrl,
   transactionsUrl,
   transactionUrl,
   validatorsUrl,
@@ -46,6 +48,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path={transactionUrl()} element={<TransactionDetails />} />
               <Route path={proposalsUrl()} element={<Proposals />} />
               <Route path={proposalUrl()} element={<ProposalDetails />} />
+              <Route path={maspTransactionsUrl()} element={<MaspTransactions />} />
             </Route>
           </Routes>
         </BrowserRouter>
