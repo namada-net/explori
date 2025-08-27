@@ -140,3 +140,24 @@ export type RegistryDenomUnit = {
   denom: string;
   exponent: number;
 }
+
+export type InnerTransactionWithHeight = {
+  txId: string;
+  kind: string;
+  data: string;
+  memo: string;
+  exitCode: string;
+  blockHeight: number;
+};
+
+export type Pagination = {
+  totalItems: number;
+  totalPages: number;
+  perPage: number;
+  currentPage: number;
+};
+
+export type RecentTransactionsResponse = {
+  results: InnerTransactionWithHeight[];
+  pagination: Pagination;
+};

@@ -45,7 +45,7 @@ export const Layout = () => {
             />
             <MenuItem
               label="MASP Transactions"
-              url="/masp-transactions"
+              url="/masp-transactions?page=1"
               icon={<FaShieldAlt />}
             />
             <MenuItem

@@ -1,9 +1,9 @@
 import { Box, Flex, Heading, Text, VStack, Spinner, Badge, HStack, Button, Menu, Checkbox, Tooltip } from "@chakra-ui/react";
 import { Table } from "@chakra-ui/react";
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { FaShieldAlt } from "react-icons/fa";
-import { useMaspTransactionsPage } from "../queries/useMaspTransactions";
+import { useRecentTransactions } from "../queries/useRecentTransactions";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
 import { Pagination } from "../components/Pagination";
 import { Hash } from "../components/Hash";
@@ -12,6 +12,8 @@ import { transactionUrl } from "../routes";
 import { camelCaseToTitleCase, MASP_ADDRESS, toDisplayAmount, formatNumberWithCommasAndDecimals, getAgeFromTimestamp, formatTimestamp } from "../utils";
 import type { Asset } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
+import { useQuery } from "@tanstack/react-query";
+import { get } from "../http/query";
 
 // Mapping between transaction kinds and their color palettes
 const getTransactionKindColor = (kind: string): string => {
@@ -30,20 +32,150 @@ const getTransactionKindColor = (kind: string): string => {
 
 export const MaspTransactions = () => {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentPage, setCurrentPage] = useState(() => {
+    const pageParam = searchParams.get('page');
+    return pageParam ? parseInt(pageParam, 10) : 1;
+  });
   const [selectedTokens, setSelectedTokens] = useState<Set<string>>(new Set());
   const [selectedKinds, setSelectedKinds] = useState<Set<string>>(new Set());
-  const blocksPerPage = 100;
+  // All available MASP transaction kinds
+  const allMaspKinds = [
+    "shieldedTransfer",
+    "shieldingTransfer",
+    "unshieldingTransfer",
+    "ibcShieldingTransfer",
+    "ibcUnshieldingTransfer",
+  ];
 
-  const { data, isLoading, error, latestBlockHeight } = useMaspTransactionsPage(currentPage, blocksPerPage);
+  // Use selected kinds or all kinds if none selected
+  const selectedKindsArray = selectedKinds.size > 0 
+    ? Array.from(selectedKinds) 
+    : allMaspKinds;
+  
+  const maspKindsParam = selectedKindsArray.join(",");
+
+  // Use selected tokens or undefined if none selected (omits token parameter)
+  const selectedTokensArray = selectedTokens.size > 0 
+    ? Array.from(selectedTokens) 
+    : [];
+  
+  const tokenParam = selectedTokensArray.length > 0 
+    ? selectedTokensArray.join(",") 
+    : undefined;
+
+  const { data: recentPage, isLoading, error } = useRecentTransactions(
+    currentPage,
+    maspKindsParam,
+    tokenParam,
+  );
   const { data: chainAssetsMap } = useChainAssetsMap();
 
-  const transactions = data || [];
-  const totalPages = latestBlockHeight ? Math.ceil(latestBlockHeight / blocksPerPage) : 0;
+  // Transform API results into enriched MASP transaction rows (parse data for token/amount/source/target)
+  const baseTransactions = (recentPage?.results || []).map((inner) => {
+    let source: string | undefined;
+    let target: string | undefined;
+    let amount: string | undefined;
+    let token: string | undefined;
 
-  // Calculate the block range for the current page
-  const startBlock = latestBlockHeight ? Math.max(latestBlockHeight - (currentPage - 1) * blocksPerPage, 1) : 0;
-  const endBlock = latestBlockHeight ? Math.max(startBlock - blocksPerPage + 1, 1) : 0;
+    if (inner.kind === "shieldedTransfer") {
+      source = "MASP";
+      target = "MASP";
+    } else if (inner.data) {
+      try {
+        const parsedData = typeof inner.data === "string" ? JSON.parse(inner.data) : inner.data;
+        if (Array.isArray(parsedData)) {
+          const sourceSection = parsedData.find((section: any) => section.sources);
+          const targetSection = parsedData.find((section: any) => section.targets);
+          if (sourceSection?.sources?.[0]) {
+            source = sourceSection.sources[0].owner;
+            amount = sourceSection.sources[0].amount;
+            token = sourceSection.sources[0].token;
+          }
+          if (targetSection?.targets?.[0]) {
+            target = targetSection.targets[0].owner;
+            if (!amount) amount = targetSection.targets[0].amount;
+            if (!token) token = targetSection.targets[0].token;
+          }
+        } else if (parsedData?.sources?.[0] || parsedData?.targets?.[0]) {
+          if (parsedData.sources?.[0]) {
+            source = parsedData.sources[0].owner;
+            amount = parsedData.sources[0].amount;
+            token = parsedData.sources[0].token;
+          }
+          if (parsedData.targets?.[0]) {
+            target = parsedData.targets[0].owner;
+            if (!amount) amount = parsedData.targets[0].amount;
+            if (!token) token = parsedData.targets[0].token;
+          }
+        }
+      } catch {}
+    }
+
+    return {
+      txId: inner.txId, // inner tx id
+      innerTxId: inner.txId,
+      blockHeight: inner.blockHeight,
+      kind: inner.kind,
+      exitCode: inner.exitCode,
+      source,
+      target,
+      amount,
+      token,
+    } as {
+      txId: string;
+      innerTxId: string;
+      blockHeight: number;
+      kind: string;
+      exitCode: string;
+      source?: string;
+      target?: string;
+      amount?: string;
+      token?: string;
+    };
+  });
+
+  // Fetch unique block timestamps for the current page
+  const uniqueHeights = Array.from(new Set(baseTransactions.map((t) => t.blockHeight))).filter((h) => Number.isFinite(h) && h > 0);
+  const { data: blocksForPage } = useQuery({
+    queryKey: ["masp-blocks-for-page", uniqueHeights],
+    queryFn: async () => {
+      if (uniqueHeights.length === 0) return [] as Array<{ height: number; timestamp?: string }>;
+      const blocks = await Promise.all(uniqueHeights.map((h) => get("/block/height/" + h)));
+      return blocks.map((b, idx) => ({ height: uniqueHeights[idx], timestamp: b?.timestamp })) as Array<{ height: number; timestamp?: string }>;
+    },
+    enabled: uniqueHeights.length > 0,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
+  const heightToTimestamp = new Map<number, string | undefined>((blocksForPage || []).map((b) => [b.height, b.timestamp]));
+  const transactions = baseTransactions.map((t) => ({ ...t, timestamp: heightToTimestamp.get(t.blockHeight) }));
+
+  const totalItems = recentPage?.pagination?.totalItems || 0;
+  const perPage = recentPage?.pagination?.perPage || 30;
+  const totalPages = recentPage?.pagination?.totalPages || 0;
+
+  // Update URL when page changes
+  useEffect(() => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (currentPage === 1) {
+      newSearchParams.delete('page');
+    } else {
+      newSearchParams.set('page', currentPage.toString());
+    }
+    setSearchParams(newSearchParams);
+  }, [currentPage, searchParams, setSearchParams]);
+
+  // Sync currentPage state when URL query parameter changes (e.g., clicking nav link)
+  useEffect(() => {
+    const pageParam = searchParams.get('page');
+    const pageFromUrl = pageParam ? parseInt(pageParam, 10) : 1;
+    const safePage = Number.isFinite(pageFromUrl) && pageFromUrl > 0 ? pageFromUrl : 1;
+    if (safePage !== currentPage) {
+      setCurrentPage(safePage);
+    }
+  }, [searchParams]);
 
   // Token filter derived from asset map
   const assetEntries = Object.entries(chainAssetsMap || {});
@@ -51,14 +183,8 @@ export const MaspTransactions = () => {
     .map(([address, asset]) => ({ address, symbol: (asset as any)?.symbol || (asset as any)?.name || address }))
     .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
-  // Transaction kinds for filtering
-  const transactionKinds = [
-    "shieldedTransfer",
-    "shieldingTransfer",
-    "unshieldingTransfer",
-    "ibcShieldingTransfer",
-    "ibcUnshieldingTransfer"
-  ];
+  // Transaction kinds for filtering (same as allMaspKinds)
+  const transactionKinds = allMaspKinds;
 
   const toggleToken = (token: string) => {
     const next = new Set(selectedTokens);
@@ -68,6 +194,7 @@ export const MaspTransactions = () => {
       next.add(token);
     }
     setSelectedTokens(next);
+    setCurrentPage(1); // Reset to page 1 when filters change
   };
 
   const toggleKind = (kind: string) => {
@@ -78,22 +205,21 @@ export const MaspTransactions = () => {
       next.add(kind);
     }
     setSelectedKinds(next);
+    setCurrentPage(1); // Reset to page 1 when filters change
   };
 
-  const resetTokenFilters = () => setSelectedTokens(new Set());
-  const resetKindFilters = () => setSelectedKinds(new Set());
+  const resetTokenFilters = () => {
+    setSelectedTokens(new Set());
+    setCurrentPage(1); // Reset to page 1 when filters change
+  };
+  
+  const resetKindFilters = () => {
+    setSelectedKinds(new Set());
+    setCurrentPage(1); // Reset to page 1 when filters change
+  };
 
-  const filteredTransactions = transactions.filter((tx) => {
-    // Filter by token if any tokens are selected
-    if (selectedTokens.size > 0 && (!tx.token || !selectedTokens.has(tx.token))) {
-      return false;
-    }
-    // Filter by kind if any kinds are selected
-    if (selectedKinds.size > 0 && !selectedKinds.has(tx.kind)) {
-      return false;
-    }
-    return true;
-  });
+  // No client-side filtering needed since we're using server-side filtering
+  const filteredTransactions = transactions;
 
   if (isLoading && currentPage === 1) {
     return (
@@ -138,12 +264,11 @@ export const MaspTransactions = () => {
         </Flex>
       </Heading>
 
-      {latestBlockHeight && (
-        <Box bg="gray.800" p={4} rounded="md" mb={4}>
-          <HStack justify="space-between" align="center">
-            <Text color="gray.300" fontSize="sm">
-              Showing transactions from blocks {startBlock} - {endBlock}
-            </Text>
+      <Box bg="gray.800" p={4} rounded="md" mb={4}>
+        <HStack justify="space-between" align="center">
+          <Text color="gray.300" fontSize="sm">
+            Showing {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalItems)} of {totalItems} MASP transactions
+          </Text>
 
             <HStack gap={2}>
               {/* Token Filter Dropdown */}
@@ -200,7 +325,6 @@ export const MaspTransactions = () => {
             </HStack>
           </HStack>
         </Box>
-      )}
 
       {(isLoading && currentPage > 1) ? (
         <VStack gap={4} align="center" py={8} bg="gray.800" rounded="md">
@@ -212,7 +336,7 @@ export const MaspTransactions = () => {
           {transactions.length === 0 ? (
             <Box p={6} rounded="md">
               <Text color="gray.400" textAlign="center">
-                No MASP transactions in this block range
+                No MASP transactions
               </Text>
             </Box>
           ) : (
@@ -353,12 +477,12 @@ export const MaspTransactions = () => {
             </Box>
           )}
 
-          {totalPages > 1 && latestBlockHeight && (
+          {totalPages > 1 && (
             <Box>
               <Pagination
                 currentPage={currentPage}
-                count={latestBlockHeight}
-                pageSize={blocksPerPage}
+                count={totalItems}
+                pageSize={perPage}
                 onPageChange={(page) => setCurrentPage(page)}
               />
             </Box>
