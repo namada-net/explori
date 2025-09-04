@@ -323,6 +323,11 @@ export const TransactionDetailsData = ({
         if (isIbcTransparentTransfer && key.toLowerCase() === "native") {
           return false;
         }
+        // Omit the top-level "Ibc" item for IBC-related inner transactions
+        const isIbcRelated = (wrapperContext?.kind || "").toLowerCase().startsWith("ibc");
+        if (isIbcRelated && key.toLowerCase() === "ibc") {
+          return false;
+        }
         return true;
       })
       .map(([key, value]) => (

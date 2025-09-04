@@ -39,6 +39,7 @@ export const MaspTransactions = () => {
   });
   const [selectedTokens, setSelectedTokens] = useState<Set<string>>(new Set());
   const [selectedKinds, setSelectedKinds] = useState<Set<string>>(new Set());
+  const [hideIbcShieldingRejections, setHideIbcShieldingRejections] = useState(true);
   // All available MASP transaction kinds
   const allMaspKinds = [
     "shieldedTransfer",
@@ -218,8 +219,10 @@ export const MaspTransactions = () => {
     setCurrentPage(1); // Reset to page 1 when filters change
   };
 
-  // No client-side filtering needed since we're using server-side filtering
-  const filteredTransactions = transactions;
+  // Apply client-side filtering for IBC shielding rejections if checkbox is checked
+  const filteredTransactions = hideIbcShieldingRejections 
+    ? transactions.filter(tx => !(tx.kind === "ibcShieldingTransfer" && tx.exitCode === "rejected"))
+    : transactions;
 
   if (isLoading && currentPage === 1) {
     return (
@@ -268,6 +271,9 @@ export const MaspTransactions = () => {
         <HStack justify="space-between" align="center">
           <Text color="gray.300" fontSize="sm">
             Showing {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalItems)} of {totalItems} MASP transactions
+            {hideIbcShieldingRejections && (
+              <span> ({transactions.length - filteredTransactions.length} hidden)</span>
+            )}
           </Text>
 
             <HStack gap={2}>
@@ -322,6 +328,22 @@ export const MaspTransactions = () => {
                   </Menu.Content>
                 </Menu.Positioner>
               </Menu.Root>
+
+              {/* Hide IBC Shielding Rejections Checkbox */}
+              <HStack gap={2} align="center" cursor="pointer" onClick={() => {
+                setHideIbcShieldingRejections(!hideIbcShieldingRejections);
+              }}>
+                <Checkbox.Root 
+                  checked={hideIbcShieldingRejections} 
+                  colorPalette="gray" 
+                  variant="subtle"
+                >
+                  <Checkbox.Control />
+                </Checkbox.Root>
+                <Text fontSize="sm" color="gray.300" userSelect="none">
+                  Hide IBC Shielding Rejections
+                </Text>
+              </HStack>
             </HStack>
           </HStack>
         </Box>
