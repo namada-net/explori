@@ -1,14 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { get } from "../http/query";
-import type { RecentTransactionsResponse } from "../types";
+import type { WrapperTransaction } from "../types";
 
 export const useRecentTransactions = (
-  page = 1,
+  offset = 0,
   kind?: string,
-  token?: string
+  token?: string,
+  refetchInterval?: number,
 ) => {
   const queryParams = new URLSearchParams();
-  queryParams.append("page", page.toString());
+  queryParams.append("offset", offset.toString());
+  queryParams.append("size", "30");
   if (kind) {
     queryParams.append("kind", kind);
   }
@@ -16,16 +18,16 @@ export const useRecentTransactions = (
     queryParams.append("token", token);
   }
 
-  const url = `/chain/recent-inner?${queryParams.toString()}`;
-  const queryId = `recent-transactions-${page}-${kind || "all"}-${token || "all"}`;
+  const url = `/chain/wrapper/recent?${queryParams.toString()}`;
+  const queryId = `recent-wrappers-${offset}-${kind || "all"}-${token || "all"}`;
 
-  return useQuery<RecentTransactionsResponse>({
+  return useQuery<WrapperTransaction[]>({
     queryKey: [queryId, url],
     queryFn: async () => {
       return get(url);
     },
     staleTime: Infinity,
     gcTime: Infinity,
-    refetchInterval: false, // Disable automatic refetching
+    refetchInterval: refetchInterval ?? false, // Disable automatic refetching
   });
 };

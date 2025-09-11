@@ -5,7 +5,6 @@ import { useNavigate, useSearchParams } from "react-router";
 import { FaShieldAlt } from "react-icons/fa";
 import { useRecentTransactions } from "../queries/useRecentTransactions";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
-import { Pagination } from "../components/Pagination";
 import { Hash } from "../components/Hash";
 import { AccountLink } from "../components/AccountLink";
 import { transactionUrl } from "../routes";
@@ -65,75 +64,83 @@ export const MaspTransactions = () => {
     ? selectedTokensArray.join(",") 
     : undefined;
 
-  const { data: recentPage, isLoading, error } = useRecentTransactions(
-    currentPage,
+  const perBatch = 30;
+  const offset = (currentPage - 1) * perBatch;
+
+  const { data: wrappers, isLoading, error } = useRecentTransactions(
+    offset,
     maspKindsParam,
     tokenParam,
   );
   const { data: chainAssetsMap } = useChainAssetsMap();
 
   // Transform API results into enriched MASP transaction rows (parse data for token/amount/source/target)
-  const baseTransactions = (recentPage?.results || []).map((inner) => {
-    let source: string | undefined;
-    let target: string | undefined;
-    let amount: string | undefined;
-    let token: string | undefined;
+  const baseTransactions = (wrappers || []).flatMap((wrapper) => {
+    const blockHeight = wrapper.blockHeight;
+    return (wrapper.innerTransactions || [])
+      .filter((inner) => selectedKindsArray.includes(inner.kind))
+      .map((inner) => {
+        let source: string | undefined;
+        let target: string | undefined;
+        let amount: string | undefined;
+        let token: string | undefined;
 
-    if (inner.kind === "shieldedTransfer") {
-      source = "MASP";
-      target = "MASP";
-    } else if (inner.data) {
-      try {
-        const parsedData = typeof inner.data === "string" ? JSON.parse(inner.data) : inner.data;
-        if (Array.isArray(parsedData)) {
-          const sourceSection = parsedData.find((section: any) => section.sources);
-          const targetSection = parsedData.find((section: any) => section.targets);
-          if (sourceSection?.sources?.[0]) {
-            source = sourceSection.sources[0].owner;
-            amount = sourceSection.sources[0].amount;
-            token = sourceSection.sources[0].token;
-          }
-          if (targetSection?.targets?.[0]) {
-            target = targetSection.targets[0].owner;
-            if (!amount) amount = targetSection.targets[0].amount;
-            if (!token) token = targetSection.targets[0].token;
-          }
-        } else if (parsedData?.sources?.[0] || parsedData?.targets?.[0]) {
-          if (parsedData.sources?.[0]) {
-            source = parsedData.sources[0].owner;
-            amount = parsedData.sources[0].amount;
-            token = parsedData.sources[0].token;
-          }
-          if (parsedData.targets?.[0]) {
-            target = parsedData.targets[0].owner;
-            if (!amount) amount = parsedData.targets[0].amount;
-            if (!token) token = parsedData.targets[0].token;
-          }
+        if (inner.kind === "shieldedTransfer") {
+          source = "MASP";
+          target = "MASP";
+        } else if (inner.data) {
+          try {
+            const parsedData = typeof inner.data === "string" ? JSON.parse(inner.data) : inner.data;
+            if (Array.isArray(parsedData)) {
+              const sourceSection = parsedData.find((section: any) => section.sources);
+              const targetSection = parsedData.find((section: any) => section.targets);
+              if (sourceSection?.sources?.[0]) {
+                source = sourceSection.sources[0].owner;
+                amount = sourceSection.sources[0].amount;
+                token = sourceSection.sources[0].token;
+              }
+              if (targetSection?.targets?.[0]) {
+                target = targetSection.targets[0].owner;
+                if (!amount) amount = targetSection.targets[0].amount;
+                if (!token) token = targetSection.targets[0].token;
+              }
+            } else if (parsedData?.sources?.[0] || parsedData?.targets?.[0]) {
+              if (parsedData.sources?.[0]) {
+                source = parsedData.sources[0].owner;
+                amount = parsedData.sources[0].amount;
+                token = parsedData.sources[0].token;
+              }
+              if (parsedData.targets?.[0]) {
+                target = parsedData.targets[0].owner;
+                if (!amount) amount = parsedData.targets[0].amount;
+                if (!token) token = parsedData.targets[0].token;
+              }
+            }
+          } catch {}
         }
-      } catch {}
-    }
 
-    return {
-      txId: inner.txId, // inner tx id
-      innerTxId: inner.txId,
-      blockHeight: inner.blockHeight,
-      kind: inner.kind,
-      exitCode: inner.exitCode,
-      source,
-      target,
-      amount,
-      token,
-    } as {
-      txId: string;
-      innerTxId: string;
-      blockHeight: number;
-      kind: string;
-      exitCode: string;
-      source?: string;
-      target?: string;
-      amount?: string;
-      token?: string;
-    };
+        return {
+          txId: inner.id,
+          innerTxId: inner.id,
+          blockHeight,
+          kind: inner.kind,
+          exitCode: inner.exitCode,
+          source,
+          target,
+          amount,
+          token,
+        } as {
+          txId: string;
+          innerTxId: string;
+          blockHeight: number;
+          kind: string;
+          exitCode: string;
+          source?: string;
+          target?: string;
+          amount?: string;
+          token?: string;
+        };
+      });
   });
 
   // Fetch unique block timestamps for the current page
@@ -153,9 +160,9 @@ export const MaspTransactions = () => {
   const heightToTimestamp = new Map<number, string | undefined>((blocksForPage || []).map((b) => [b.height, b.timestamp]));
   const transactions = baseTransactions.map((t) => ({ ...t, timestamp: heightToTimestamp.get(t.blockHeight) }));
 
-  const totalItems = recentPage?.pagination?.totalItems || 0;
-  const perPage = recentPage?.pagination?.perPage || 30;
-  const totalPages = recentPage?.pagination?.totalPages || 0;
+  const totalInBatch = baseTransactions.length;
+  const hasPrev = currentPage > 1;
+  const hasNext = (wrappers?.length || 0) === perBatch;
 
   // Update URL when page changes
   useEffect(() => {
@@ -250,7 +257,7 @@ export const MaspTransactions = () => {
             MASP Transactions
           </Flex>
         </Heading>
-        <Box bg="red.100" color="red.800" p={4} rounded="md">
+        <Box bg="red.700" color="white" p={4} rounded="md">
           <Text fontWeight="semibold">Error</Text>
           <Text>Failed to load MASP transactions. Please try again.</Text>
         </Box>
@@ -270,7 +277,7 @@ export const MaspTransactions = () => {
       <Box bg="gray.800" p={4} rounded="md" mb={4}>
         <HStack justify="space-between" align="center">
           <Text color="gray.300" fontSize="sm">
-            Showing {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalItems)} of {totalItems} MASP transactions
+            Showing {totalInBatch} MASP transactions from {offset + 1}-{offset + (wrappers?.length || 0)} most recent wrappers
             {hideIbcShieldingRejections && (
               <span> ({transactions.length - filteredTransactions.length} hidden)</span>
             )}
@@ -499,16 +506,39 @@ export const MaspTransactions = () => {
             </Box>
           )}
 
-          {totalPages > 1 && (
-            <Box>
-              <Pagination
-                currentPage={currentPage}
-                count={totalItems}
-                pageSize={perPage}
-                onPageChange={(page) => setCurrentPage(page)}
-              />
-            </Box>
-          )}
+          <HStack justify="space-between" mt={4}>
+            {!hasNext && (wrappers?.length || 0) > 0 && (
+              <Text color="gray.400" fontSize="sm">
+                No additional matching transactions
+              </Text>
+            )}
+            <HStack ml="auto">
+              <Button
+                variant="outline"
+                size="md"
+                px={3}
+                _hover={{ bg: "gray.800", color: "white" }}
+                borderColor="gray.700"
+                color="gray.300"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={!hasPrev}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="md"
+                px={3}
+                _hover={{ bg: "gray.800", color: "white" }}
+                borderColor="gray.700"
+                color="gray.300"
+                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={!hasNext}
+              >
+                Next
+              </Button>
+            </HStack>
+          </HStack>
         </>
       )}
     </Box>

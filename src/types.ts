@@ -161,3 +161,24 @@ export type RecentTransactionsResponse = {
   results: InnerTransactionWithHeight[];
   pagination: Pagination;
 };
+
+export type WrapperInnerTransaction = {
+  id: string;
+  kind: string;
+  data?: string;
+  memo?: string;
+  exitCode: string;
+};
+
+export type WrapperTransaction = {
+  id: string;
+  feePayer?: string;
+  feeToken?: { address: string } | string;
+  gasLimit?: string;
+  gasUsed?: number;
+  amountPerGasUnit?: number;
+  blockHeight: number;
+  innerTransactions: WrapperInnerTransaction[];
+  exitCode: string;
+  atomic?: boolean;
+};

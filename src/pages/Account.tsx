@@ -123,7 +123,7 @@ export const Account = () => {
 
   if (accountError) {
     return (
-      <Box bg="red.100" color="red.800" p={4} rounded="md">
+      <Box bg="red.700" color="white" p={4} rounded="md">
         <Text fontWeight="semibold">Error</Text>
         <Text>
           Failed to load account details. Please check the address and try
