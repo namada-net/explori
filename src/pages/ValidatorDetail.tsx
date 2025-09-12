@@ -38,7 +38,7 @@ export const ValidatorDetail = () => {
   const { address } = useParams<{ address: string }>();
 
   // We currently don't have an endpoint to fetch a single validator by address,
-  const validators = useAllValidators();
+  const validators = useAllValidators({ refetchInterval: undefined });
 
   const validator = useMemo(
     () => validators.data?.find((v: Validator) => v.address === address),

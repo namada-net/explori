@@ -33,7 +33,7 @@ type WrapperTxContext = {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const createValueMap = (wrapperContext?: WrapperTxContext): Record<string, Function | undefined> => {
   const { data: chainAssetsMap } = useChainAssetsMap();
-  const { data: validators } = useAllValidators();
+  const { data: validators } = useAllValidators({ refetchInterval: undefined });
 
   return {
     validator: (address: string) => {

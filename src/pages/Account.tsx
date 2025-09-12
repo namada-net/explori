@@ -64,7 +64,7 @@ export const Account = () => {
     useDelegations(address!);
 
   const { data: transactionsData } = useAccountTransactions(address ?? "");
-  const allValidators = useAllValidators();
+  const allValidators = useAllValidators({ refetchInterval: undefined });
   const matchingValidator: Validator | undefined = useMemo(() => {
     const list = (allValidators.data as Validator[]) || [];
     return list.find((v: Validator) => v.address === address);

@@ -3,13 +3,23 @@ import Fuse from "fuse.js";
 import { useMemo } from "react";
 import type { Validator } from "../types";
 
-export const useAllValidators = () => {
-  return useSimpleGet("all-validators", `/pos/validator/all`);
+export const useAllValidators = (options?: {
+  enabled?: boolean;
+  refetchInterval?: number | undefined;
+}) => {
+  return useSimpleGet(
+    "all-validators",
+    `/pos/validator/all`,
+    options?.refetchInterval,
+    options?.enabled ?? true,
+  );
 };
 
 // Fuzzy search hook for validator names using Fuse.js
 export const useValidatorNameMatchesFuzzy = (query: string) => {
-  const all = useAllValidators();
+  const trimmed = query.trim();
+  const shouldFetch = trimmed.length >= 3;
+  const all = useAllValidators({ enabled: shouldFetch, refetchInterval: undefined });
 
   const index = useMemo(() => {
     if (!all.data) return null;
