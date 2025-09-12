@@ -180,6 +180,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
             <Table.Row>
               <Table.ColumnHeader color="gray.300">Hash</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.300">Type</Table.ColumnHeader>
+              <Table.ColumnHeader color="gray.300">Direction</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.300">Status</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.300">Block</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.300">Amount</Table.ColumnHeader>
@@ -207,8 +208,8 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                     </Table.Cell>
                     <Table.Cell>
                       <Badge
-                        variant="subtle"
-                        colorScheme="gray"
+                        variant="outline"
+                        colorPalette="gray"
                         fontSize="xs"
                         textTransform="capitalize"
                         fontWeight="medium"
@@ -218,9 +219,21 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                     </Table.Cell>
                     <Table.Cell>
                       <Badge
-                        variant="subtle"
-                        backgroundColor={
-                          tx.tx.exitCode === "applied" ? "green.500" : "red.500"
+                        variant={
+                          tx.kind === "received" ? "solid" : "outline"
+                        }
+                        colorPalette="blue"
+                        fontSize="xs"
+                        textTransform="capitalize"
+                      >
+                        {tx.kind || "-"}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge
+                        variant="surface"
+                        colorPalette={
+                          tx.tx.exitCode === "applied" ? "green" : "red"
                         }
                         fontSize="xs"
                         textTransform="capitalize"
