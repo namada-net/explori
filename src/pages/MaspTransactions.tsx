@@ -121,6 +121,7 @@ export const MaspTransactions = () => {
 
         return {
           txId: inner.id,
+          id: inner.id,
           innerTxId: inner.id,
           blockHeight,
           kind: inner.kind,
@@ -131,6 +132,7 @@ export const MaspTransactions = () => {
           token,
         } as {
           txId: string;
+          id: string;
           innerTxId: string;
           blockHeight: number;
           kind: string;
@@ -389,11 +391,11 @@ export const MaspTransactions = () => {
 
                     return (
                       <Table.Row
-                        key={`${tx.txId}-${tx.kind}-${tx.blockHeight}`}
+                        key={`${tx.txId || tx.id}-${tx.kind}-${tx.blockHeight}`}
                         _hover={{ bg: "gray.800" }}
                         transition="all 0.1s ease-in-out"
                         cursor="pointer"
-                        onClick={() => navigate(transactionUrl(tx.innerTxId || tx.txId))}
+                        onClick={() => navigate(transactionUrl(tx.innerTxId || tx.txId || tx.id))}
                       >
                         <Table.Cell>
                           {tx.timestamp ? (
@@ -493,7 +495,7 @@ export const MaspTransactions = () => {
                         <Table.Cell py={4}>
                           <Text fontSize="sm" color="gray.400">
                             {(() => {
-                              const hash = tx.innerTxId || tx.txId;
+                              const hash = tx.innerTxId || tx.txId || tx.id;
                               return hash ? `${hash.slice(0, 6)}...${hash.slice(-6)}` : "-";
                             })()}
                           </Text>

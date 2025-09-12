@@ -20,7 +20,8 @@ import { Hash } from "./Hash";
 import { PageLink } from "./PageLink";
 
 interface Tx {
-  txId: string;
+  txId?: string; // Legacy field
+  id?: string;   // New field
   wrapperId: string;
   kind: string;
   data: string;
@@ -193,7 +194,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                 const tokenSymbol = token ? chainAssetsMap[token]?.symbol : "";
                 return (
                   <Table.Row
-                    key={tx.tx.txId}
+                    key={tx.tx.txId || tx.tx.id}
                     _hover={{
                       bg: "gray.800",
                     }}

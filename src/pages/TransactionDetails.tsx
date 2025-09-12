@@ -135,7 +135,7 @@ export const TransactionDetails = () => {
             {txData.innerTransactions.map(
               (innerTransaction: InnerTransaction, index: number) => (
                 <InnerTransactionCard
-                  key={innerTransaction.txId || `inner-${index}`}
+                  key={innerTransaction.txId || innerTransaction.id || `inner-${index}`}
                   innerTransaction={innerTransaction}
                   wrapperTxData={{
                     kind: innerTransaction.kind,

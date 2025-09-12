@@ -1,5 +1,6 @@
 export type InnerTransaction = {
-  txId: string;
+  txId?: string; // Legacy field
+  id?: string;   // New field
   kind: string;
   data: string;
   memo: string;
@@ -142,7 +143,8 @@ export type RegistryDenomUnit = {
 }
 
 export type InnerTransactionWithHeight = {
-  txId: string;
+  txId?: string; // Legacy field
+  id?: string;   // New field
   kind: string;
   data: string;
   memo: string;
