@@ -1,4 +1,4 @@
-import { Box, Grid, VStack, Text, Tooltip } from "@chakra-ui/react";
+import { Grid, VStack, Text, Tooltip } from "@chakra-ui/react";
 import { useNavigate } from "react-router";
 import { Data } from "./Data";
 import { Hash } from "./Hash";
