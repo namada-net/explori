@@ -18,10 +18,10 @@ export const Transactions = () => {
 
   const selectedKindsArray = selectedKinds.size > 0 ? Array.from(selectedKinds) : [];
   const selectedTokensArray = selectedTokens.size > 0 ? Array.from(selectedTokens) : [];
-  const kindParam = viewMode === "inner" && selectedKindsArray.length > 0 ? selectedKindsArray.join(",") : undefined;
-  const tokenParam = viewMode === "inner" && selectedTokensArray.length > 0 ? selectedTokensArray.join(",") : undefined;
+  const kindsForQuery = viewMode === "inner" && selectedKindsArray.length > 0 ? selectedKindsArray : undefined;
+  const tokensForQuery = viewMode === "inner" && selectedTokensArray.length > 0 ? selectedTokensArray : undefined;
 
-  const { data: wrappers, isLoading, isError } = useRecentTransactions(offset, kindParam, tokenParam, 10000);
+  const { data: wrappers, isLoading, isError } = useRecentTransactions(offset, kindsForQuery, tokensForQuery, 10000);
   const { data: chainAssetsMap } = useChainAssetsMap();
 
   const innerWithWrapper = useMemo(() => {

@@ -53,15 +53,15 @@ export const MaspTransactions = () => {
     ? Array.from(selectedKinds) 
     : allMaspKinds;
   
-  const maspKindsParam = selectedKindsArray.join(",");
+  const maspKindsForQuery = selectedKindsArray;
 
   // Use selected tokens or undefined if none selected (omits token parameter)
   const selectedTokensArray = selectedTokens.size > 0 
     ? Array.from(selectedTokens) 
     : [];
   
-  const tokenParam = selectedTokensArray.length > 0 
-    ? selectedTokensArray.join(",") 
+  const tokensForQuery = selectedTokensArray.length > 0 
+    ? selectedTokensArray 
     : undefined;
 
   const perBatch = 30;
@@ -69,8 +69,8 @@ export const MaspTransactions = () => {
 
   const { data: wrappers, isLoading, error } = useRecentTransactions(
     offset,
-    maspKindsParam,
-    tokenParam,
+    maspKindsForQuery,
+    tokensForQuery,
   );
   const { data: chainAssetsMap } = useChainAssetsMap();
 
