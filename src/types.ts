@@ -1,5 +1,6 @@
 export type InnerTransaction = {
-  txId: string;
+  txId?: string; // Legacy field
+  id?: string;   // New field
   kind: string;
   data: string;
   memo: string;
@@ -142,7 +143,8 @@ export type RegistryDenomUnit = {
 }
 
 export type InnerTransactionWithHeight = {
-  txId: string;
+  txId?: string; // Legacy field
+  id?: string;   // New field
   kind: string;
   data: string;
   memo: string;
@@ -160,4 +162,25 @@ export type Pagination = {
 export type RecentTransactionsResponse = {
   results: InnerTransactionWithHeight[];
   pagination: Pagination;
+};
+
+export type WrapperInnerTransaction = {
+  id: string;
+  kind: string;
+  data?: string;
+  memo?: string;
+  exitCode: string;
+};
+
+export type WrapperTransaction = {
+  id: string;
+  feePayer?: string;
+  feeToken?: { address: string } | string;
+  gasLimit?: string;
+  gasUsed?: number;
+  amountPerGasUnit?: number;
+  blockHeight: number;
+  innerTransactions: WrapperInnerTransaction[];
+  exitCode: string;
+  atomic?: boolean;
 };

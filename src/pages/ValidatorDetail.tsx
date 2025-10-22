@@ -38,7 +38,7 @@ export const ValidatorDetail = () => {
   const { address } = useParams<{ address: string }>();
 
   // We currently don't have an endpoint to fetch a single validator by address,
-  const validators = useAllValidators();
+  const validators = useAllValidators({ refetchInterval: undefined });
 
   const validator = useMemo(
     () => validators.data?.find((v: Validator) => v.address === address),
@@ -83,7 +83,7 @@ export const ValidatorDetail = () => {
 
   if (bondsError || unbondsError) {
     return (
-      <Box bg="red.100" color="red.800" p={4} rounded="md">
+      <Box bg="red.700" color="white" p={4} rounded="md">
         <Text fontWeight="semibold">Error</Text>
         <Text>Failed to load validator bonds data. Please try again.</Text>
       </Box>

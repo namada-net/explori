@@ -139,7 +139,7 @@ export const InnerTransactionCard = ({
       >
         <Data
           title="Inner TX Hash"
-          content={<Hash hash={innerTransaction.txId} enableCopy={true} />}
+          content={<Hash hash={innerTransaction.txId || innerTransaction.id || ""} enableCopy={true} />}
         />
         <Data
           title="Exit Code"

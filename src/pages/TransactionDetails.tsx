@@ -36,7 +36,7 @@ export const TransactionDetails = () => {
 
   if (transaction.isError) {
     return (
-      <Box bg="red.100" color="red.800" p={4} rounded="md">
+      <Box bg="red.700" color="white" p={4} rounded="md">
         <Text fontWeight="semibold">Error</Text>
         <Text>
           Failed to load transaction. Please check the address and try again.
@@ -135,7 +135,7 @@ export const TransactionDetails = () => {
             {txData.innerTransactions.map(
               (innerTransaction: InnerTransaction, index: number) => (
                 <InnerTransactionCard
-                  key={innerTransaction.txId || `inner-${index}`}
+                  key={innerTransaction.txId || innerTransaction.id || `inner-${index}`}
                   innerTransaction={innerTransaction}
                   wrapperTxData={{
                     kind: innerTransaction.kind,

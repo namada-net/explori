@@ -43,9 +43,7 @@ export const Search = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [debouncedSearch] = useDebounce(searchValue, 500);
   const search = useSearchValue(debouncedSearch.toLowerCase());
-  const { matches: matchedValidators } = useValidatorNameMatchesFuzzy(
-    debouncedSearch,
-  );
+  const { matches: matchedValidators } = useValidatorNameMatchesFuzzy(debouncedSearch);
   const emptyResults =
     search.isSuccess &&
     search.data.transactions.length +

@@ -20,7 +20,8 @@ import { Hash } from "./Hash";
 import { PageLink } from "./PageLink";
 
 interface Tx {
-  txId: string;
+  txId?: string; // Legacy field
+  id?: string;   // New field
   wrapperId: string;
   kind: string;
   data: string;
@@ -156,7 +157,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
 
   if (error) {
     return (
-      <Box bg="red.100" color="red.800" p={4} rounded="md">
+      <Box bg="red.700" color="white" p={4} rounded="md">
         <Text fontWeight="semibold">Error</Text>
         <Text>Failed to load transactions. Please try again.</Text>
       </Box>
@@ -179,6 +180,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
             <Table.Row>
               <Table.ColumnHeader color="gray.300">Hash</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.300">Type</Table.ColumnHeader>
+              <Table.ColumnHeader color="gray.300">Direction</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.300">Status</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.300">Block</Table.ColumnHeader>
               <Table.ColumnHeader color="gray.300">Amount</Table.ColumnHeader>
@@ -193,7 +195,7 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                 const tokenSymbol = token ? chainAssetsMap[token]?.symbol : "";
                 return (
                   <Table.Row
-                    key={tx.tx.txId}
+                    key={tx.tx.txId || tx.tx.id}
                     _hover={{
                       bg: "gray.800",
                     }}
@@ -206,8 +208,8 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                     </Table.Cell>
                     <Table.Cell>
                       <Badge
-                        variant="subtle"
-                        colorScheme="gray"
+                        variant="outline"
+                        colorPalette="gray"
                         fontSize="xs"
                         textTransform="capitalize"
                         fontWeight="medium"
@@ -217,9 +219,21 @@ export const AccountTransactions = ({ address }: AccountTransactionsProps) => {
                     </Table.Cell>
                     <Table.Cell>
                       <Badge
-                        variant="subtle"
-                        backgroundColor={
-                          tx.tx.exitCode === "applied" ? "green.500" : "red.500"
+                        variant={
+                          tx.kind === "received" ? "solid" : "outline"
+                        }
+                        colorPalette="blue"
+                        fontSize="xs"
+                        textTransform="capitalize"
+                      >
+                        {tx.kind || "-"}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Badge
+                        variant="surface"
+                        colorPalette={
+                          tx.tx.exitCode === "applied" ? "green" : "red"
                         }
                         fontSize="xs"
                         textTransform="capitalize"
