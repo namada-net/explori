@@ -20,12 +20,20 @@ import { ProposalStatusBadge } from "../components/ProposalStatusBadge";
 import type { ProposalContent } from "../types";
 import { ProposalContentCard } from "../components/ProposalContentCard";
 import { useVotingPower } from "../queries/useVotingPower";
+import { useProposalWasmData } from "../queries/useProposalWasmData";
 
 export const ProposalDetails = () => {
   const params = useParams();
   const currentProposal = parseInt(params.id || "1");
   const proposalInfo = useProposalFromList(currentProposal);
   const votingPowerData = useVotingPower();
+  const wasmData = useProposalWasmData(currentProposal);
+
+  // Extract wasm hash directly from API response
+  const wasmHash = (proposalInfo.data?.type === "defaultWithWasm" &&
+    wasmData.data &&
+    typeof wasmData.data === 'object' &&
+    wasmData.data.hash) ? wasmData.data.hash : '';
 
   // Get first page to determine latest proposal ID for navigation
   const { data: firstPage } = useSimpleGet("proposals-first-page", "/gov/proposal?page=1");
@@ -145,9 +153,18 @@ export const ProposalDetails = () => {
             <OverviewCard title="Type" isLoading={proposalInfo.isLoading}>
               {proposalInfo.data?.type}
             </OverviewCard>
-            {(proposalInfo.data?.type === "default" || proposalInfo.data?.type === "defaultWithWasm") && (
-              <OverviewCard title="Wasm data hash" isLoading={proposalInfo.isLoading}>
-                {<Hash hash={proposalInfo.data?.data ?? ""} enableCopy={proposalInfo.data?.data ? true : false}></Hash>}
+            {proposalInfo.data?.type === "defaultWithWasm" && (
+              <OverviewCard
+                title="Wasm code hash"
+                isLoading={wasmData.isLoading}
+              >
+                {wasmHash ? (
+                  <Hash hash={wasmHash} enableCopy={true} />
+                ) : wasmData.isError ? (
+                  <Text color="red.400">No wasm data found</Text>
+                ) : (
+                  <Text color="gray.500">Loading wasm data...</Text>
+                )}
               </OverviewCard>
             )}
           </Grid>
