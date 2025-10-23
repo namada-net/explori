@@ -167,8 +167,11 @@ export const ProposalDetails = () => {
       {proposalInfo.isLoading && <Skeleton height="60px" width="100%" mb={4} />}
       {proposalInfo.data && (
         <>
-          {/* First row: Status, Voting Quorum, Yay/Nay/Abstain votes */}
-          <Grid templateColumns="repeat(5, 1fr)" gap={1} mb={4}>
+          {/* Vote results section */}
+          <Heading as="h2" size="md" mb={2} color="purple.400">
+            Vote results
+          </Heading>
+          <Grid templateColumns="repeat(5, 1fr)" gap={1} mb={6}>
             <OverviewCard title="Status" isLoading={proposalInfo.isLoading}>
               <ProposalStatusBadge status={proposalInfo.data?.status} />
             </OverviewCard>
@@ -226,8 +229,11 @@ export const ProposalDetails = () => {
             </OverviewCard>
           </Grid>
 
-          {/* Second row: Voting times */}
-          <Grid templateColumns="repeat(4, 1fr)" gap={1} mb={4}>
+          {/* Voting periods section */}
+          <Heading as="h2" size="md" mb={2} color="purple.400">
+            Voting periods
+          </Heading>
+          <Grid templateColumns="repeat(4, 1fr)" gap={1} mb={6}>
             <OverviewCard title="Voting start" isLoading={proposalInfo.isLoading}>
               {formatTimestamp(proposalInfo.data?.startTime)}
               <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.startEpoch})</Text>
@@ -255,7 +261,10 @@ export const ProposalDetails = () => {
             </OverviewCard>
           </Grid>
 
-          {/* Third row: Other information */}
+          {/* Other section */}
+          <Heading as="h2" size="md" mb={2} color="purple.400">
+            Other
+          </Heading>
           <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={1} mb={8}>
             <OverviewCard title="Author" isLoading={proposalInfo.isLoading}>
               {<Hash hash={proposalInfo.data?.author} enableCopy={true} />}
@@ -278,9 +287,16 @@ export const ProposalDetails = () => {
               </OverviewCard>
             )}
           </Grid>
-          {proposalContent &&
-            <ProposalContentCard proposalContent={proposalContent} />
-          }
+
+          {/* Content section */}
+          {proposalContent && (
+            <>
+              <Heading as="h2" size="md" mb={2} color="purple.400">
+                Content
+              </Heading>
+              <ProposalContentCard proposalContent={proposalContent} />
+            </>
+          )}
           {proposalInfo.data?.type === "pgfFunding" && proposalInfo.data?.data && (
             <Box
               w="100%"
