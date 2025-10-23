@@ -24,13 +24,13 @@ export const ProposalDetails = () => {
   const params = useParams();
   const currentProposal = parseInt(params.id || "1");
   const proposalInfo = useProposalFromList(currentProposal);
-  
+
   // Get first page to determine latest proposal ID for navigation
   const { data: firstPage } = useSimpleGet("proposals-first-page", "/gov/proposal?page=1");
   const lastProposalId = firstPage?.results?.length > 0
     ? Math.max(...firstPage.results.map((proposal: any) => parseInt(proposal.id)))
     : 0;
-  
+
   const proposalContent = proposalInfo.data?.content
     ? JSON.parse(proposalInfo.data.content) as ProposalContent
     : null;
@@ -90,11 +90,11 @@ export const ProposalDetails = () => {
               <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.startEpoch})</Text>
             </OverviewCard>
             <OverviewCard title="Voting end" isLoading={proposalInfo.isLoading}>
-              {formatTimestamp(proposalInfo.data?.startTime)}
+              {formatTimestamp(proposalInfo.data?.endTime)}
               <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.endEpoch})</Text>
             </OverviewCard>
             <OverviewCard title="Activation time" isLoading={proposalInfo.isLoading}>
-              {formatTimestamp(proposalInfo.data?.startTime)}
+              {formatTimestamp(proposalInfo.data?.activationTime)}
               <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.activationEpoch})</Text>
             </OverviewCard>
             <OverviewCard title="Status" isLoading={proposalInfo.isLoading}>
