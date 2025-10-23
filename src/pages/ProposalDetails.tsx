@@ -86,6 +86,46 @@ export const ProposalDetails = () => {
     }
   };
 
+  const getValidatorVotingPeriod = () => {
+    if (!proposalInfo.data?.startEpoch || !proposalInfo.data?.endEpoch ||
+      !proposalInfo.data?.startTime || !proposalInfo.data?.endTime) return null;
+
+    const startEpoch = parseInt(proposalInfo.data.startEpoch);
+    const endEpoch = parseInt(proposalInfo.data.endEpoch);
+    const startTime = parseInt(proposalInfo.data.startTime);
+    const endTime = parseInt(proposalInfo.data.endTime);
+
+    // Calculate (voting_start_epoch + 2*voting_end_epoch)/3
+    const calculatedEpoch = (startEpoch + 2 * endEpoch) / 3;
+
+    let validatorVotingEpoch: number;
+
+    // Check if it's a fraction
+    if (calculatedEpoch % 1 !== 0) {
+      // If fraction ending in .333 or .666, round up
+      const fraction = calculatedEpoch % 1;
+      if (Math.abs(fraction - 0.333) < 0.001 || Math.abs(fraction - 0.666) < 0.001) {
+        validatorVotingEpoch = Math.ceil(calculatedEpoch);
+      } else {
+        validatorVotingEpoch = Math.round(calculatedEpoch);
+      }
+    } else {
+      // If whole number, add 1
+      validatorVotingEpoch = calculatedEpoch + 1;
+    }
+
+    // Calculate the timestamp by interpolating between start and end times
+    const epochDuration = endEpoch - startEpoch;
+    const timeDuration = endTime - startTime;
+    const epochProgress = (validatorVotingEpoch - startEpoch) / epochDuration;
+    const validatorVotingTime = startTime + (timeDuration * epochProgress);
+
+    return {
+      epoch: validatorVotingEpoch,
+      time: Math.round(validatorVotingTime)
+    };
+  };
+
   return (
     <>
       <Heading
@@ -187,7 +227,7 @@ export const ProposalDetails = () => {
           </Grid>
 
           {/* Second row: Voting times */}
-          <Grid templateColumns="repeat(3, 1fr)" gap={1} mb={4}>
+          <Grid templateColumns="repeat(4, 1fr)" gap={1} mb={4}>
             <OverviewCard title="Voting start" isLoading={proposalInfo.isLoading}>
               {formatTimestamp(proposalInfo.data?.startTime)}
               <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.startEpoch})</Text>
@@ -195,6 +235,19 @@ export const ProposalDetails = () => {
             <OverviewCard title="Voting end" isLoading={proposalInfo.isLoading}>
               {formatTimestamp(proposalInfo.data?.endTime)}
               <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.endEpoch})</Text>
+            </OverviewCard>
+            <OverviewCard title="Validator-only voting end" isLoading={proposalInfo.isLoading}>
+              {(() => {
+                const validatorPeriod = getValidatorVotingPeriod();
+                return validatorPeriod ? (
+                  <>
+                    {formatTimestamp(validatorPeriod.time)}
+                    <Text color="gray.400" ml="4">(Epoch {validatorPeriod.epoch})</Text>
+                  </>
+                ) : (
+                  <Text>-</Text>
+                );
+              })()}
             </OverviewCard>
             <OverviewCard title="Activation time" isLoading={proposalInfo.isLoading}>
               {formatTimestamp(proposalInfo.data?.activationTime)}
