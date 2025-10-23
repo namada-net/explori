@@ -1,13 +1,12 @@
-import { get } from "../http/query";
-import { useQuery } from "@tanstack/react-query";
+import { useSimpleGet } from "./useSimpleGet";
 
-export const useProposals = () => {
-  return useQuery({
-    queryKey: ["proposals"],
-    queryFn: async () => {
-        return get("/gov/proposal/all");
-      },
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
+export const useProposals = (page: number = 1) => {
+  const queryParams = new URLSearchParams();
+  if (page !== undefined) {
+    queryParams.append("page", page.toString());
+  }
+  const queryString = queryParams.toString();
+  const url = `/gov/proposal${queryString ? `?${queryString}` : ""}`;
+
+  return useSimpleGet("proposals", url, undefined, true);
 };
