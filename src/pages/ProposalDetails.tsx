@@ -19,11 +19,13 @@ import { Hash } from "../components/Hash";
 import { ProposalStatusBadge } from "../components/ProposalStatusBadge";
 import type { ProposalContent } from "../types";
 import { ProposalContentCard } from "../components/ProposalContentCard";
+import { useVotingPower } from "../queries/useVotingPower";
 
 export const ProposalDetails = () => {
   const params = useParams();
   const currentProposal = parseInt(params.id || "1");
   const proposalInfo = useProposalFromList(currentProposal);
+  const votingPowerData = useVotingPower();
 
   // Get first page to determine latest proposal ID for navigation
   const { data: firstPage } = useSimpleGet("proposals-first-page", "/gov/proposal?page=1");
@@ -41,6 +43,19 @@ export const ProposalDetails = () => {
       parseInt(proposalInfo.data.abstainVotes)
       : 0;
     return totalVotes === 0 ? 0 : Number((parseInt(votes) / totalVotes * 100).toFixed(2));
+  };
+
+  const votingQuorum = () => {
+    const totalVotes = proposalInfo.data
+      ? parseInt(proposalInfo.data.yayVotes) +
+      parseInt(proposalInfo.data.nayVotes) +
+      parseInt(proposalInfo.data.abstainVotes)
+      : 0;
+    const totalVotingPower = votingPowerData.data?.totalVotingPower;
+
+    if (!totalVotingPower || totalVotingPower === 0) return 0;
+
+    return Number((totalVotes / totalVotingPower * 100).toFixed(2));
   };
 
   return (
@@ -84,21 +99,13 @@ export const ProposalDetails = () => {
       {proposalInfo.isLoading && <Skeleton height="60px" width="100%" mb={4} />}
       {proposalInfo.data && (
         <>
-          <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={1} mb={8}>
-            <OverviewCard title="Voting start" isLoading={proposalInfo.isLoading}>
-              {formatTimestamp(proposalInfo.data?.startTime)}
-              <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.startEpoch})</Text>
-            </OverviewCard>
-            <OverviewCard title="Voting end" isLoading={proposalInfo.isLoading}>
-              {formatTimestamp(proposalInfo.data?.endTime)}
-              <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.endEpoch})</Text>
-            </OverviewCard>
-            <OverviewCard title="Activation time" isLoading={proposalInfo.isLoading}>
-              {formatTimestamp(proposalInfo.data?.activationTime)}
-              <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.activationEpoch})</Text>
-            </OverviewCard>
+          {/* First row: Status, Voting Quorum, Yay/Nay/Abstain votes */}
+          <Grid templateColumns="repeat(5, 1fr)" gap={1} mb={4}>
             <OverviewCard title="Status" isLoading={proposalInfo.isLoading}>
               <ProposalStatusBadge status={proposalInfo.data?.status} />
+            </OverviewCard>
+            <OverviewCard title="Voting quorum" isLoading={proposalInfo.isLoading || votingPowerData.isLoading}>
+              {votingQuorum()}%
             </OverviewCard>
             <OverviewCard title="Yay votes" isLoading={proposalInfo.isLoading}>
               {proposalInfo.data?.yayVotes}
@@ -112,6 +119,26 @@ export const ProposalDetails = () => {
               {proposalInfo.data?.abstainVotes}
               <Text color="gray.400" ml="4">({votesAsPercent(proposalInfo.data?.abstainVotes)}%)</Text>
             </OverviewCard>
+          </Grid>
+
+          {/* Second row: Voting times */}
+          <Grid templateColumns="repeat(3, 1fr)" gap={1} mb={4}>
+            <OverviewCard title="Voting start" isLoading={proposalInfo.isLoading}>
+              {formatTimestamp(proposalInfo.data?.startTime)}
+              <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.startEpoch})</Text>
+            </OverviewCard>
+            <OverviewCard title="Voting end" isLoading={proposalInfo.isLoading}>
+              {formatTimestamp(proposalInfo.data?.endTime)}
+              <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.endEpoch})</Text>
+            </OverviewCard>
+            <OverviewCard title="Activation time" isLoading={proposalInfo.isLoading}>
+              {formatTimestamp(proposalInfo.data?.activationTime)}
+              <Text color="gray.400" ml="4">(Epoch {proposalInfo.data?.activationEpoch})</Text>
+            </OverviewCard>
+          </Grid>
+
+          {/* Third row: Other information */}
+          <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={1} mb={8}>
             <OverviewCard title="Author" isLoading={proposalInfo.isLoading}>
               {<Hash hash={proposalInfo.data?.author} enableCopy={true} />}
             </OverviewCard>
