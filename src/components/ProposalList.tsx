@@ -14,27 +14,20 @@ export const ProposalList = ({
   proposalsPerPage = 10,
 }: ProposalListProps) => {
   const [currentPage, setCurrentPage] = useState(1);
-  
-  // Find the highest ID from the proposals array
-  const lastProposalId = proposals.length > 0 
-    ? Math.max(...proposals.map(proposal => parseInt(proposal.id)))
-    : 0;
 
   const renderProposals = (page: number) => {
-    const startProposal = lastProposalId - (page - 1) * proposalsPerPage;
-    const endProposal = Math.max(startProposal - proposalsPerPage + 1, 1);
-    const proposalsToRender = [];
-    for (let n = startProposal; n >= endProposal; n--) {
-      proposalsToRender.push(<ProposalCard key={n} proposalId={n} />);
-    }
-    return proposalsToRender;
+    const startIndex = (page - 1) * proposalsPerPage;
+    const endIndex = startIndex + proposalsPerPage;
+    return proposals.slice(startIndex, endIndex).map((proposal) => (
+      <ProposalCard key={proposal.id} proposal={proposal} />
+    ));
   };
 
   return (
     <VStack gap={2} align="start" w="100%">
       {renderProposals(currentPage)}
       <Pagination
-        count={lastProposalId}
+        count={proposals.length}
         currentPage={currentPage}
         pageSize={proposalsPerPage}
         onPageChange={(page) => setCurrentPage(page)}

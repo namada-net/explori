@@ -1,6 +1,6 @@
 import { formatTimestamp, formatNumberWithCommas } from "../utils";
 import { OverviewCard } from "../components/OverviewCard";
-import { useProposal } from "../queries/useProposal";
+import { useProposalFromList } from "../queries/useProposalFromList";
 import {
   Box,
   Grid,
@@ -14,7 +14,7 @@ import { useParams } from "react-router";
 import { FaVoteYea } from "react-icons/fa";
 import { proposalUrl } from "../routes";
 import { PageLink } from "../components/PageLink";
-import { useProposals } from "../queries/useProposals";
+import { useSimpleGet } from "../queries/useSimpleGet";
 import { Hash } from "../components/Hash";
 import { ProposalStatusBadge } from "../components/ProposalStatusBadge";
 import type { ProposalContent } from "../types";
@@ -22,12 +22,15 @@ import { ProposalContentCard } from "../components/ProposalContentCard";
 
 export const ProposalDetails = () => {
   const params = useParams();
-  const proposals = useProposals();
-  const lastProposalId = proposals.data?.length > 0
-    ? Math.max(...proposals.data.map((proposal: any) => parseInt(proposal.id)))
-    : 0;
   const currentProposal = parseInt(params.id || "1");
-  const proposalInfo = useProposal(parseInt(params.id || "1"));
+  const proposalInfo = useProposalFromList(currentProposal);
+  
+  // Get first page to determine latest proposal ID for navigation
+  const { data: firstPage } = useSimpleGet("proposals-first-page", "/gov/proposal?page=1");
+  const lastProposalId = firstPage?.results?.length > 0
+    ? Math.max(...firstPage.results.map((proposal: any) => parseInt(proposal.id)))
+    : 0;
+  
   const proposalContent = proposalInfo.data?.content
     ? JSON.parse(proposalInfo.data.content) as ProposalContent
     : null;
@@ -66,7 +69,7 @@ export const ProposalDetails = () => {
           fontSize="sm"
           color="gray.300"
         >
-          {!proposals.isLoading && currentProposal !== lastProposalId && lastProposalId > 0 && (
+          {!proposalInfo.isLoading && currentProposal !== lastProposalId && lastProposalId > 0 && (
             <PageLink to={proposalUrl(currentProposal + 1)}>
               Next
             </PageLink>
