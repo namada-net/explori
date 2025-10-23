@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { get } from "../http/query";
+import type { AccountResponse } from "../types";
 
 export const useAccount = (address: string) => {
 	return useQuery({
@@ -7,12 +8,10 @@ export const useAccount = (address: string) => {
 		queryFn: async () => {
 			const data = await get(`/account/${address}`);
 			if (Array.isArray(data)) {
-				return data.map((item: any) => ({
+				return data.map((item: AccountResponse[0]) => ({
 					...item,
-					tokenAddress:
-						typeof item?.tokenAddress === "string"
-							? item.tokenAddress
-							: item?.tokenAddress?.address ?? "",
+					tokenAddress: item?.token?.address ?? "",
+					trace: item?.token?.trace,
 				}));
 			}
 			return data;

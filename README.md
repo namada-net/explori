@@ -2,16 +2,16 @@
 
 https://namada.world/
 
-## Install
+## Setup
 
 - `npm install`
+- create a `.env` file in the root dir and place the indexer and RPC links desired
+  - An example is in `.env.sample`
 
 ## Build
 
-- copy `.env.sample` and modify it
 - `npm run build`
 
 ## Development
 
-- copy `.env.sample` and modify it
 - `npm run dev`

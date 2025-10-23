@@ -24,8 +24,11 @@ export type Validator = {
 };
 
 export type AccountResponse = Array<{
+  token: {
+    address: string;
+    trace?: string;
+  };
   minDenomAmount: string;
-  tokenAddress: string;
 }>;
 
 export type TransactionSource = {
