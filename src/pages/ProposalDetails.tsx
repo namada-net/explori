@@ -9,6 +9,7 @@ import {
   HStack,
   Skeleton,
   Text,
+  VStack,
 } from "@chakra-ui/react";
 import { useParams } from "react-router";
 import { FaVoteYea } from "react-icons/fa";
@@ -66,6 +67,25 @@ export const ProposalDetails = () => {
     return Number((totalVotes / totalVotingPower * 100).toFixed(2));
   };
 
+  const getVotingThreshold = () => {
+    if (!proposalInfo.data?.type) return null;
+
+    const proposalType = proposalInfo.data.type;
+
+    // Based on Namada governance documentation
+    switch (proposalType) {
+      case "default":
+      case "defaultWithWasm":
+        return "40%";  // Default proposals require 40% participation
+      case "pgfSteward":
+        return "33.33%";  // PGF steward proposals require 1/3 participation
+      case "pgfFunding":
+        return "33.33%";  // PGF funding proposals require 1/3 participation (or for veto)
+      default:
+        return "40%";  // Default fallback
+    }
+  };
+
   return (
     <>
       <Heading
@@ -112,9 +132,46 @@ export const ProposalDetails = () => {
             <OverviewCard title="Status" isLoading={proposalInfo.isLoading}>
               <ProposalStatusBadge status={proposalInfo.data?.status} />
             </OverviewCard>
-            <OverviewCard title="Voting quorum" isLoading={proposalInfo.isLoading || votingPowerData.isLoading}>
-              {votingQuorum()}%
-            </OverviewCard>
+            <VStack
+              bg="gray.800"
+              px={4}
+              py={2}
+              minW="150px"
+              align="start"
+              gap={1}
+              rounded="sm"
+            >
+              <Flex justify="space-between" align="center" width="100%">
+                <Heading as="h3" size="sm">
+                  Voting quorum
+                </Heading>
+                {getVotingThreshold() && (
+                  <Heading as="h3" size="sm" color="gray.400">
+                    (Threshold)
+                  </Heading>
+                )}
+              </Flex>
+              <Flex
+                w="100%"
+                minH="6"
+                alignItems="center"
+                fontSize="sm"
+                justify="space-between"
+              >
+                {proposalInfo.isLoading || votingPowerData.isLoading ? (
+                  <Skeleton height="4" width="100%" />
+                ) : (
+                  <>
+                    <Text>{votingQuorum()}%</Text>
+                    {getVotingThreshold() && (
+                      <Text color="gray.300">
+                        {getVotingThreshold()}
+                      </Text>
+                    )}
+                  </>
+                )}
+              </Flex>
+            </VStack>
             <OverviewCard title="Yay votes" isLoading={proposalInfo.isLoading}>
               {proposalInfo.data?.yayVotes}
               <Text color="gray.400" ml="4">({votesAsPercent(proposalInfo.data?.yayVotes)}%)</Text>
