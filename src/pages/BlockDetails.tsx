@@ -85,7 +85,7 @@ export const BlockDetails = () => {
           <Alert.Content>
             <Alert.Title>Future Block Prediction</Alert.Title>
             <Alert.Description>
-              This block hasn't been mined yet. Based on the current average block time of {blockTimeLoading ? 'calculating...' : avgBlockTime ? `${avgBlockTime.toFixed(1)}s` : 'calculating...'},
+              This block hasn't been created yet. Based on the current average block time of {blockTimeLoading ? 'calculating...' : avgBlockTime ? `${avgBlockTime.toFixed(1)}s` : 'calculating...'},
               this block is estimated to be created {predictedTime ? `at ${formatTimestamp(predictedTime)}` : 'soon'}.
             </Alert.Description>
           </Alert.Content>
