@@ -142,6 +142,12 @@ export const ProposalDetails = () => {
             <Text ml={2}>{proposalContent.title}</Text>
           }
         </Flex>
+        {proposalInfo.data?.author && (
+          <Flex gap={2} align="center" color="gray.200" fontSize="md" mt={1}>
+            <Text>submitted by</Text>
+            <Hash hash={proposalInfo.data.author} enableCopy={true} />
+          </Flex>
+        )}
 
         <HStack
           gap={6}
@@ -266,9 +272,6 @@ export const ProposalDetails = () => {
             Other
           </Heading>
           <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={1} mb={8}>
-            <OverviewCard title="Author" isLoading={proposalInfo.isLoading}>
-              {<Hash hash={proposalInfo.data?.author} enableCopy={true} />}
-            </OverviewCard>
             <OverviewCard title="Type" isLoading={proposalInfo.isLoading}>
               {proposalInfo.data?.type}
             </OverviewCard>
