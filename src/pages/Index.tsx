@@ -13,7 +13,6 @@ import { useChainParameters } from "../queries/useChainParameters";
 import { useAccount } from "../queries/useAccount";
 import { useTokenSupply } from "../queries/useTokenSupply";
 import { useVotingPower } from "../queries/useVotingPower";
-import { useBlockInfo } from "../queries/useBlockInfo";
 import { useOsmosisPrices } from "../queries/useOsmosisPrices";
 import { BlockList } from "../components/BlockList";
 import { FaListAlt } from "react-icons/fa";
@@ -24,6 +23,7 @@ import type { Asset } from "@chain-registry/types";
 import BigNumber from "bignumber.js";
 import { useMemo } from "react";
 import { useChainAssetsMap } from "../queries/useChainAssetsMap";
+import { useAverageBlockTime } from "../queries/useAverageBlockTime";
 
 export const Index = () => {
   const latestBlock = useLatestBlock();
@@ -35,6 +35,7 @@ export const Index = () => {
   const votingPower = useVotingPower();
   const { data: prices, isLoading: pricesLoading, error: pricesError } = useOsmosisPrices(0); // disable automatic refetch
   const { data: chainAssetsMap } = useChainAssetsMap();
+  const { avgBlockTime, isLoading: blockTimeLoading } = useAverageBlockTime();
 
   // Calculate masp tvl for non-native and native assets separately
   const { maspTvlNonNative, maspTvlNative } = useMemo(() => {
@@ -61,10 +62,10 @@ export const Index = () => {
       }
 
       // Find the asset in namada assets for toDisplayAmount function
-      const namadaAsset = namadaAssets.assets.find(namadaAsset => 
+      const namadaAsset = namadaAssets.assets.find(namadaAsset =>
         namadaAsset.address === balance.tokenAddress
       ) as Asset | undefined;
-      
+
       if (!namadaAsset) {
         console.warn(`Namada asset not found for token: ${balance.tokenAddress}`);
         continue;
@@ -72,10 +73,10 @@ export const Index = () => {
 
       // Calculate denominated amount
       const denominatedAmt = toDisplayAmount(namadaAsset, new BigNumber(balance.minDenomAmount)).toNumber();
-      
+
       // Calculate value in USDC
       const value = denominatedAmt * priceEntry.priceUsdc;
-      
+
       // Add to appropriate total based on whether it's NAM or not
       if (balance.tokenAddress === NAMADA_ADDRESS) {
         nativeTvl += value;
@@ -99,12 +100,6 @@ export const Index = () => {
     return stakedNam && denomSupply ? (stakedNam / denomSupply * 100).toFixed(2) : null;
   }, [stakedNam, denomSupply]);
 
-  // Calculate average block time
-  const windowSize = 5;
-  const latestBlockInfo = useBlockInfo(latestBlock.data?.block - 1);
-  const previousBlockInfo = useBlockInfo(latestBlock.data?.block ? latestBlock.data?.block - 1 - windowSize : null);
-  const avgBlockTime = latestBlockInfo?.data?.timestamp && previousBlockInfo?.data?.timestamp ?
-    (latestBlockInfo.data.timestamp - previousBlockInfo.data.timestamp) / windowSize : null;
 
   return (
     <VStack gap={8} align="start">
@@ -135,7 +130,7 @@ export const Index = () => {
           <OverviewCard title="Latest Epoch" isLoading={latestEpoch.isLoading}>
             {latestEpoch.data?.epoch}
           </OverviewCard>
-          <OverviewCard title="Block Time" isLoading={previousBlockInfo?.isLoading}>
+          <OverviewCard title="Block Time" isLoading={blockTimeLoading}>
             {avgBlockTime ? `${avgBlockTime.toFixed(1)}s` : ""}
           </OverviewCard>
           <OverviewCard title="Effective Supply (NAM)" isLoading={namSupply.isLoading}>
@@ -143,21 +138,21 @@ export const Index = () => {
           </OverviewCard>
           <OverviewCard title="MASP TVL (Non-native)" isLoading={pricesLoading}>
             {maspTvlNonNative && !pricesError ? maspTvlNonNative
-            .toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            }) : "Not available"}
+              .toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }) : "Not available"}
           </OverviewCard>
           <OverviewCard title="MASP TVL (Native)" isLoading={pricesLoading}>
             {maspTvlNative && !pricesError ? maspTvlNative
-            .toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            }) : "Not available"}
+              .toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }) : "Not available"}
           </OverviewCard>
           <OverviewCard title="Staked (NAM)" isLoading={votingPower.isLoading || namSupply.isLoading}>
             {formatNumberWithCommas(votingPower.data?.totalVotingPower ?? 0)} ({stakedNamPercentage}%)
