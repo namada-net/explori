@@ -316,9 +316,22 @@ export const ProposalDetails = () => {
             </>
           )}
 
-          {proposalInfo.data?.type === "pgfFunding" && (
+          {/* Note: 'default' type has no additional section */}
+
+          {/* Content section */}
+          {proposalContent && (
             <>
               <Heading as="h2" size="md" mb={2} color="purple.400">
+                Content
+              </Heading>
+              <ProposalContentCard proposalContent={proposalContent} />
+            </>
+          )}
+
+          {/* PGF data sections after content */}
+          {proposalInfo.data?.type === "pgfFunding" && (
+            <>
+              <Heading as="h2" size="md" mb={2} mt={6} color="purple.400">
                 Funding data
               </Heading>
               <Box
@@ -332,13 +345,127 @@ export const ProposalDetails = () => {
                 overflow="auto"
                 mb={8}
               >
-                {wasmData.data ? (
-                  <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px', color: '#e2e8f0' }}>
-                    {typeof wasmData.data === 'string'
-                      ? wasmData.data
-                      : JSON.stringify(wasmData.data, null, 2)
+                {wasmData.data && wasmData.data.data ? (
+                  (() => {
+                    try {
+                      const fundingData = JSON.parse(wasmData.data.data);
+                      const retroFunding: Array<{ target: string, amount: string }> = [];
+                      const continuousAddFunding: Array<{ target: string, amount: string }> = [];
+                      const continuousRemoveFunding: Array<{ target: string, amount: string }> = [];
+
+                      // Parse the funding data array
+                      if (Array.isArray(fundingData)) {
+                        fundingData.forEach((item: any) => {
+                          // Handle Retro funding
+                          if (item.Retro && item.Retro.Internal) {
+                            retroFunding.push({
+                              target: item.Retro.Internal.target,
+                              amount: item.Retro.Internal.amount
+                            });
+                          }
+
+                          // Handle Continuous funding
+                          if (item.Continuous) {
+                            if (item.Continuous.Add && item.Continuous.Add.Internal) {
+                              continuousAddFunding.push({
+                                target: item.Continuous.Add.Internal.target,
+                                amount: item.Continuous.Add.Internal.amount
+                              });
+                            }
+                            if (item.Continuous.Remove && item.Continuous.Remove.Internal) {
+                              continuousRemoveFunding.push({
+                                target: item.Continuous.Remove.Internal.target,
+                                amount: item.Continuous.Remove.Internal.amount
+                              });
+                            }
+                          }
+                        });
+                      }
+
+                      return (
+                        <>
+                          {retroFunding.length > 0 && (
+                            <Box mb={4}>
+                              <Heading as="h3" size="sm" color="cyan.300" mb={2}>
+                                Retro
+                              </Heading>
+                              <Grid templateColumns="400px 200px" gap={4} rowGap={1}>
+                                {retroFunding.map((funding: { target: string, amount: string }, index: number) => (
+                                  <>
+                                    <Box key={`retro-addr-${index}`}>
+                                      <Hash hash={funding.target} enableCopy={true} />
+                                    </Box>
+                                    <Box key={`retro-amount-${index}`} textAlign="left">
+                                      <Text color="green.300" fontWeight="medium">
+                                        {formatNumberWithCommas(parseInt(funding.amount) / 1000000)} NAM
+                                      </Text>
+                                    </Box>
+                                  </>
+                                ))}
+                              </Grid>
+                            </Box>
+                          )}
+
+                          {continuousAddFunding.length > 0 && (
+                            <Box mb={4}>
+                              <Heading as="h3" size="sm" color="cyan.300" mb={2}>
+                                Continuous Add
+                              </Heading>
+                              <Grid templateColumns="400px 200px" gap={4} rowGap={1}>
+                                {continuousAddFunding.map((funding: { target: string, amount: string }, index: number) => (
+                                  <>
+                                    <Box key={`add-addr-${index}`}>
+                                      <Hash hash={funding.target} enableCopy={true} />
+                                    </Box>
+                                    <Box key={`add-amount-${index}`} textAlign="left">
+                                      <Text color="green.300">
+                                        {formatNumberWithCommas(parseInt(funding.amount) / 1000000)} NAM / epoch
+                                      </Text>
+                                    </Box>
+                                  </>
+                                ))}
+                              </Grid>
+                            </Box>
+                          )}
+
+                          {continuousRemoveFunding.length > 0 && (
+                            <Box mb={4}>
+                              <Heading as="h3" size="sm" color="cyan.300" mb={2}>
+                                Continuous Remove
+                              </Heading>
+                              <Grid templateColumns="400px 200px" gap={4} rowGap={1}>
+                                {continuousRemoveFunding.map((funding: { target: string, amount: string }, index: number) => (
+                                  <>
+                                    <Box key={`remove-addr-${index}`}>
+                                      <Hash hash={funding.target} enableCopy={true} />
+                                    </Box>
+                                    <Box key={`remove-amount-${index}`} textAlign="left">
+                                      <Text color="red.300">
+                                        {formatNumberWithCommas(parseInt(funding.amount) / 1000000)} NAM / epoch
+                                      </Text>
+                                    </Box>
+                                  </>
+                                ))}
+                              </Grid>
+                            </Box>
+                          )}
+
+                          {retroFunding.length === 0 && continuousAddFunding.length === 0 && continuousRemoveFunding.length === 0 && (
+                            <Text color="gray.400">No funding data found</Text>
+                          )}
+                        </>
+                      );
+                    } catch (error) {
+                      return (
+                        <Box>
+                          <Text color="red.400" mb={2}>Error parsing funding data:</Text>
+                          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px', color: '#e2e8f0' }}>
+                            {wasmData.data.data}
+                          </pre>
+                        </Box>
+                      );
                     }
-                  </pre>
+                  })()
                 ) : wasmData.isLoading ? (
                   <Text color="gray.400">Loading funding data...</Text>
                 ) : (
@@ -377,18 +504,6 @@ export const ProposalDetails = () => {
                   <Text color="red.400">No steward data found</Text>
                 )}
               </Box>
-            </>
-          )}
-
-          {/* Note: 'default' type has no additional section */}
-
-          {/* Content section */}
-          {proposalContent && (
-            <>
-              <Heading as="h2" size="md" mb={2} color="purple.400">
-                Content
-              </Heading>
-              <ProposalContentCard proposalContent={proposalContent} />
             </>
           )}
         </>
