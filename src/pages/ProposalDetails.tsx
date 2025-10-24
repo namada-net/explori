@@ -126,6 +126,23 @@ export const ProposalDetails = () => {
     };
   };
 
+  const getProposalTypeDescription = () => {
+    if (!proposalInfo.data?.type) return null;
+
+    switch (proposalInfo.data.type) {
+      case "default":
+        return "Signaling proposal";
+      case "defaultWithWasm":
+        return "WASM-executable proposal";
+      case "pgfFunding":
+        return "Funding proposal";
+      case "pgfSteward":
+        return "PGF Steward proposal";
+      default:
+        return proposalInfo.data.type;
+    }
+  };
+
   return (
     <>
       <Heading
@@ -142,10 +159,19 @@ export const ProposalDetails = () => {
             <Text ml={2}>{proposalContent.title}</Text>
           }
         </Flex>
-        {proposalInfo.data?.author && (
-          <Flex gap={2} align="center" color="gray.200" fontSize="md" mt={1}>
-            <Text>submitted by</Text>
-            <Hash hash={proposalInfo.data.author} enableCopy={true} />
+        {(getProposalTypeDescription() || proposalInfo.data?.author) && (
+          <Flex gap={4} align="center" fontSize="md" mt={1}>
+            {getProposalTypeDescription() && (
+              <Text color="green.400" fontWeight="medium">
+                {getProposalTypeDescription()}
+              </Text>
+            )}
+            {proposalInfo.data?.author && (
+              <Flex gap={2} align="center" color="gray.200">
+                <Text>submitted by</Text>
+                <Hash hash={proposalInfo.data.author} enableCopy={true} />
+              </Flex>
+            )}
           </Flex>
         )}
 
@@ -267,29 +293,94 @@ export const ProposalDetails = () => {
             </OverviewCard>
           </Grid>
 
-          {/* Other section */}
-          <Heading as="h2" size="md" mb={2} color="purple.400">
-            Other
-          </Heading>
-          <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={1} mb={8}>
-            <OverviewCard title="Type" isLoading={proposalInfo.isLoading}>
-              {proposalInfo.data?.type}
-            </OverviewCard>
-            {proposalInfo.data?.type === "defaultWithWasm" && (
-              <OverviewCard
-                title="Wasm code hash"
-                isLoading={wasmData.isLoading}
+          {/* Conditional sections based on proposal type */}
+          {proposalInfo.data?.type === "defaultWithWasm" && (
+            <>
+              <Heading as="h2" size="md" mb={2} color="purple.400">
+                Wasm data hash
+              </Heading>
+              <Grid templateColumns="1fr" gap={1} mb={8} maxW="400px">
+                <OverviewCard
+                  title="Wasm code hash"
+                  isLoading={wasmData.isLoading}
+                >
+                  {wasmHash ? (
+                    <Hash hash={wasmHash} enableCopy={true} />
+                  ) : wasmData.isError ? (
+                    <Text color="red.400">No wasm data found</Text>
+                  ) : (
+                    <Text color="gray.500">Loading wasm data...</Text>
+                  )}
+                </OverviewCard>
+              </Grid>
+            </>
+          )}
+
+          {proposalInfo.data?.type === "pgfFunding" && (
+            <>
+              <Heading as="h2" size="md" mb={2} color="purple.400">
+                Funding data
+              </Heading>
+              <Box
+                w="100%"
+                py={4}
+                px={4}
+                rounded="sm"
+                bg="gray.800"
+                borderLeft="2px solid"
+                borderColor="purple.400"
+                overflow="auto"
+                mb={8}
               >
-                {wasmHash ? (
-                  <Hash hash={wasmHash} enableCopy={true} />
-                ) : wasmData.isError ? (
-                  <Text color="red.400">No wasm data found</Text>
+                {wasmData.data ? (
+                  <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px', color: '#e2e8f0' }}>
+                    {typeof wasmData.data === 'string'
+                      ? wasmData.data
+                      : JSON.stringify(wasmData.data, null, 2)
+                    }
+                  </pre>
+                ) : wasmData.isLoading ? (
+                  <Text color="gray.400">Loading funding data...</Text>
                 ) : (
-                  <Text color="gray.500">Loading wasm data...</Text>
+                  <Text color="red.400">No funding data found</Text>
                 )}
-              </OverviewCard>
-            )}
-          </Grid>
+              </Box>
+            </>
+          )}
+
+          {proposalInfo.data?.type === "pgfSteward" && (
+            <>
+              <Heading as="h2" size="md" mb={2} color="purple.400">
+                PGF Steward data
+              </Heading>
+              <Box
+                w="100%"
+                py={4}
+                px={4}
+                rounded="sm"
+                bg="gray.800"
+                borderLeft="2px solid"
+                borderColor="purple.400"
+                overflow="auto"
+                mb={8}
+              >
+                {wasmData.data ? (
+                  <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px', color: '#e2e8f0' }}>
+                    {typeof wasmData.data === 'string'
+                      ? wasmData.data
+                      : JSON.stringify(wasmData.data, null, 2)
+                    }
+                  </pre>
+                ) : wasmData.isLoading ? (
+                  <Text color="gray.400">Loading steward data...</Text>
+                ) : (
+                  <Text color="red.400">No steward data found</Text>
+                )}
+              </Box>
+            </>
+          )}
+
+          {/* Note: 'default' type has no additional section */}
 
           {/* Content section */}
           {proposalContent && (
@@ -299,130 +390,6 @@ export const ProposalDetails = () => {
               </Heading>
               <ProposalContentCard proposalContent={proposalContent} />
             </>
-          )}
-          {proposalInfo.data?.type === "pgfFunding" && proposalInfo.data?.data && (
-            <Box
-              w="100%"
-              py={4}
-              px={4}
-              rounded="sm"
-              bg="gray.800"
-              borderLeft="2px solid"
-              borderColor="purple.400"
-              overflow="auto"
-              mt={4}
-            >
-              <Heading as="h3" size="md" color="purple.400" mb={4}>
-                PGF Data
-              </Heading>
-              {(() => {
-                try {
-                  const parsedData = JSON.parse(proposalInfo.data.data);
-                  const retroFunding: Array<{ target: string, amount: string }> = [];
-                  const continuousFunding: Array<{ target: string, amount: string }> = [];
-
-                  // Debug: log the structure to understand it better
-                  console.log("PGF Data structure:", parsedData);
-
-                  // PGF data is an array of funding objects
-                  if (Array.isArray(parsedData)) {
-                    parsedData.forEach((fundingItem: any) => {
-                      // Check for Retroactive funding
-                      if (fundingItem.Retro) {
-                        // Navigate through Internal/Ibc level
-                        Object.values(fundingItem.Retro).forEach((funding: any) => {
-                          if (funding && funding.target && funding.amount) {
-                            retroFunding.push({ target: funding.target, amount: funding.amount });
-                          }
-                        });
-                      }
-
-                      // Check for Continuous funding  
-                      if (fundingItem.Continuous) {
-                        // Navigate through Internal/Ibc level
-                        Object.values(fundingItem.Continuous).forEach((funding: any) => {
-                          if (funding && funding.target && funding.amount) {
-                            continuousFunding.push({ target: funding.target, amount: funding.amount });
-                          }
-                        });
-                      }
-                    });
-                  }
-
-                  return (
-                    <>
-                      {retroFunding.length > 0 && (
-                        <Box mb={6}>
-                          <Heading as="h4" size="sm" color="cyan.300" mb={3}>
-                            Retroactive Funding Targets
-                          </Heading>
-                          {retroFunding.map((funding, index) => (
-                            <Box key={index} mb={2} p={3} bg="gray.900" rounded="md">
-                              <Flex align="center" wrap="wrap" gap={10}>
-                                <Box width="400px">
-                                  <Hash hash={funding.target} enableCopy={true} />
-                                </Box>
-                                <Box>
-                                  <Text fontSize="xs" color="gray.400" mb={1}>Amount</Text>
-                                  <Text fontWeight="semibold" color="green.300">
-                                    {formatNumberWithCommas(parseInt(funding.amount) / 1000000)} NAM
-                                  </Text>
-                                </Box>
-                              </Flex>
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
-                      {continuousFunding.length > 0 && (
-                        <Box>
-                          <Heading as="h4" size="sm" color="cyan.300" mb={3}>
-                            Continuous Funding Targets
-                          </Heading>
-                          {continuousFunding.map((funding, index) => (
-                            <Box key={index} mb={2} p={3} bg="gray.900" rounded="md">
-                              <Flex align="center" wrap="wrap" gap={10}>
-                                <Box width="400px">
-                                  <Hash hash={funding.target} enableCopy={true} />
-                                </Box>
-                                <Box>
-                                  <Text fontSize="xs" color="gray.400" mb={1}>Amount</Text>
-                                  <Text fontWeight="semibold" color="green.300">
-                                    {formatNumberWithCommas(parseInt(funding.amount) / 1000000)} NAM
-                                  </Text>
-                                </Box>
-                              </Flex>
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
-                      {retroFunding.length === 0 && continuousFunding.length === 0 && (
-                        <Box>
-                          <Box bg="gray.900" p={4} rounded="md" mb={4}>
-                            <Text fontSize="sm" color="gray.400" mb={2}>
-                              No funding data found. Raw structure:
-                            </Text>
-                            <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px', color: '#e2e8f0' }}>
-                              {JSON.stringify(parsedData, null, 2)}
-                            </pre>
-                          </Box>
-                        </Box>
-                      )}
-                    </>
-                  );
-                } catch (error) {
-                  return (
-                    <Box bg="gray.900" p={4} rounded="md">
-                      <Text fontSize="sm" color="red.300" mb={2}>
-                        Error parsing PGF data:
-                      </Text>
-                      <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px', color: '#e2e8f0' }}>
-                        {proposalInfo.data.data}
-                      </pre>
-                    </Box>
-                  );
-                }
-              })()}
-            </Box>
           )}
         </>
       )}
