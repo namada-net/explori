@@ -29,6 +29,7 @@ import { useDelegations } from "../queries/useDelegations";
 import type { CombinedDelegation } from "../queries/useDelegations";
 import { useAllValidators } from "../queries/useAllValidators";
 import type { Validator } from "../types";
+import { useVotingRecord, type VotingRecord } from "../queries/useVotingRecord";
 
 type UserAsset = {
   address?: string;
@@ -56,7 +57,7 @@ export const Account = () => {
 
   const { data: chainAssetsMap, isLoading: chainAssetsLoading } =
     useChainAssetsMap();
-  
+
   const { data: prices, isLoading: pricesLoading, error: pricesError } =
     useOsmosisPrices(0); // disable automatic refetch
 
@@ -64,6 +65,7 @@ export const Account = () => {
     useDelegations(address!);
 
   const { data: transactionsData } = useAccountTransactions(address ?? "");
+  const { data: votingRecord, isLoading: votingRecordLoading } = useVotingRecord(address ?? "");
   const allValidators = useAllValidators({ refetchInterval: undefined });
   const matchingValidator: Validator | undefined = useMemo(() => {
     const list = (allValidators.data as Validator[]) || [];
@@ -223,139 +225,204 @@ export const Account = () => {
           </OverviewCard>
         </Grid>
 
-        <VStack gap={3} align="start">
-          <Heading as="h2" size="lg" color="white">
-            User Assets
-          </Heading>
-          <Grid
-            templateColumns={{
-              base: "1fr",
-              md: "1fr 1fr",
-              lg: "1fr 1fr 1fr 1fr",
-            }}
-            gap={2}
-          >
-            {/* Assets List */}
-            {userAssets.length > 0 &&
-              userAssets.map((asset) => {
-                if (asset.balance === "0") return null;
-                return (
-                  <Box
-                    key={asset.tokenAddress}
-                    bg="gray.950"
-                    p={4}
-                    rounded="sm"
-                  >
-                    <VStack align="start" gap={2}>
-                      <HStack justify="space-between" w="full">
-                        <Text
-                          color="yellow"
-                          fontWeight="semibold"
-                          fontSize="sm"
-                        >
-                          {asset.symbol || asset.name || "Unknown Token"}
-                        </Text>
-                        <Text fontSize="xs" color="gray.400">
-                          {asset.denom && `(${asset.denom})`}
-                        </Text>
-                      </HStack>
+        {/* User Assets and Governance Voting Record side by side */}
+        <HStack gap={6} align="start">
+          {/* User Assets Section - Left Side */}
+          <VStack gap={3} align="start" flex="2">
+            <Heading as="h2" size="lg" color="white">
+              User Assets
+            </Heading>
+            <Grid
+              templateColumns={{
+                base: "1fr",
+                md: "1fr 1fr",
+                lg: "1fr 1fr 1fr",
+              }}
+              gap={2}
+            >
+              {/* Assets List */}
+              {userAssets.length > 0 &&
+                userAssets.map((asset) => {
+                  if (asset.balance === "0") return null;
+                  return (
+                    <Box
+                      key={asset.tokenAddress}
+                      bg="gray.950"
+                      p={4}
+                      rounded="sm"
+                    >
+                      <VStack align="start" gap={2}>
+                        <HStack justify="space-between" w="full">
+                          <Text
+                            color="yellow"
+                            fontWeight="semibold"
+                            fontSize="sm"
+                          >
+                            {asset.symbol || asset.name || "Unknown Token"}
+                          </Text>
+                          <Text fontSize="xs" color="gray.400">
+                            {asset.denom && `(${asset.denom})`}
+                          </Text>
+                        </HStack>
 
-                      <Text fontSize="lg">
-                        {formatNumberWithCommasAndDecimals(toDisplayAmount(
-                          chainAssetsMap[asset.tokenAddress] as Asset,
-                          new BigNumber(asset.balance),
-                        ))}{" "}
-                        {asset.symbol}
+                        <Text fontSize="lg">
+                          {formatNumberWithCommasAndDecimals(toDisplayAmount(
+                            chainAssetsMap[asset.tokenAddress] as Asset,
+                            new BigNumber(asset.balance),
+                          ))}{" "}
+                          {asset.symbol}
+                        </Text>
+                        {pricesError ? <></>
+                          : pricesLoading ?
+                            <Skeleton height="21px" width="100px" />
+                            :
+                            <Text fontSize="sm" color="cyan.400">
+                              {(toDisplayAmount(
+                                chainAssetsMap[asset.tokenAddress] as Asset,
+                                new BigNumber(asset.balance),
+                              ).toNumber()
+                                * (prices?.find(price => price.address === asset.tokenAddress)?.priceUsdc || 0))
+                                .toLocaleString('en-US', {
+                                  style: 'currency',
+                                  currency: 'USD',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })}
+                            </Text>
+                        }
+
+                        {asset.name && asset.name !== asset.symbol && (
+                          <Text fontSize="sm" color="gray.400">
+                            {asset.name}
+                          </Text>
+                        )}
+                        <Text
+                          fontSize="xs"
+                          color="gray.600"
+                          fontFamily="mono"
+                          wordBreak="break-all"
+                        >
+                          {asset.tokenAddress}
+                        </Text>
+                      </VStack>
+                    </Box>
+                  );
+                })}
+
+              {account.publicKey && (
+                <Box>
+                  <Text fontWeight="semibold" mb={2}>
+                    Public Key:
+                  </Text>
+                  <Text
+                    fontFamily="mono"
+                    fontSize="sm"
+                    color="gray.300"
+                    wordBreak="break-all"
+                    bg="gray.900"
+                    p={3}
+                    rounded="md"
+                  >
+                    {account.publicKey}
+                  </Text>
+                </Box>
+              )}
+
+              {account.validator && (
+                <Box>
+                  <Text fontWeight="semibold" mb={2}>
+                    Validator Information:
+                  </Text>
+                  <Box bg="gray.900" p={4} rounded="md">
+                    <VStack gap={2} align="stretch">
+                      <Text fontSize="sm">
+                        <Text as="span" fontWeight="semibold">
+                          Status:
+                        </Text>{" "}
+                        {account.validator.status}
                       </Text>
-                      {pricesError ? <></>
-                      : pricesLoading ?
-                        <Skeleton height="21px" width="100px" />
-                      : 
-                        <Text fontSize="sm" color="cyan.400">
-                          {(toDisplayAmount(
-                              chainAssetsMap[asset.tokenAddress] as Asset,
-                              new BigNumber(asset.balance),
-                            ).toNumber() 
-                            * (prices?.find(price => price.address === asset.tokenAddress)?.priceUsdc || 0))
-                            .toLocaleString('en-US', {
-                              style: 'currency',
-                              currency: 'USD',
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                        </Text>
-                      }
-                      
-                      {asset.name && asset.name !== asset.symbol && (
-                        <Text fontSize="sm" color="gray.400">
-                          {asset.name}
-                        </Text>
-                      )}
-                      <Text
-                        fontSize="xs"
-                        color="gray.600"
-                        fontFamily="mono"
-                        wordBreak="break-all"
-                      >
-                        {asset.tokenAddress}
+                      <Text fontSize="sm">
+                        <Text as="span" fontWeight="semibold">
+                          Voting Power:
+                        </Text>{" "}
+                        {account.validator.votingPower}
+                      </Text>
+                      <Text fontSize="sm">
+                        <Text as="span" fontWeight="semibold">
+                          Commission Rate:
+                        </Text>{" "}
+                        {account.validator.commission}%
                       </Text>
                     </VStack>
                   </Box>
-                );
-              })}
-
-            {account.publicKey && (
-              <Box>
-                <Text fontWeight="semibold" mb={2}>
-                  Public Key:
-                </Text>
-                <Text
-                  fontFamily="mono"
-                  fontSize="sm"
-                  color="gray.300"
-                  wordBreak="break-all"
-                  bg="gray.900"
-                  p={3}
-                  rounded="md"
-                >
-                  {account.publicKey}
-                </Text>
-              </Box>
-            )}
-
-            {account.validator && (
-              <Box>
-                <Text fontWeight="semibold" mb={2}>
-                  Validator Information:
-                </Text>
-                <Box bg="gray.900" p={4} rounded="md">
-                  <VStack gap={2} align="stretch">
-                    <Text fontSize="sm">
-                      <Text as="span" fontWeight="semibold">
-                        Status:
-                      </Text>{" "}
-                      {account.validator.status}
-                    </Text>
-                    <Text fontSize="sm">
-                      <Text as="span" fontWeight="semibold">
-                        Voting Power:
-                      </Text>{" "}
-                      {account.validator.votingPower}
-                    </Text>
-                    <Text fontSize="sm">
-                      <Text as="span" fontWeight="semibold">
-                        Commission Rate:
-                      </Text>{" "}
-                      {account.validator.commission}%
-                    </Text>
-                  </VStack>
                 </Box>
+              )}
+            </Grid>
+          </VStack>
+
+          {/* Governance Voting Record - Right Side */}
+          <VStack gap={3} align="stretch" flex="1" minW="300px">
+            <Heading as="h2" size="lg" color="white">
+              Governance Voting Record
+            </Heading>
+            {votingRecordLoading ? (
+              <Skeleton height="60px" width="100%" />
+            ) : !votingRecord || votingRecord.length === 0 ? (
+              <Box bg="gray.900" p={4} rounded="md">
+                <Text color="gray.400">No voting record found</Text>
+              </Box>
+            ) : (
+              <Box
+                bg="gray.900"
+                p={4}
+                rounded="md"
+                maxHeight="300px"
+                overflowY="auto"
+                css={{
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#2D3748',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#4A5568',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    background: '#718096',
+                  },
+                }}
+              >
+                <VStack align="start" gap={2}>
+                  {(votingRecord as VotingRecord[])
+                    .sort((a, b) => b.proposalId - a.proposalId) // Sort by proposal ID descending
+                    .map((vote, index) => (
+                      <Text key={index} fontSize="sm">
+                        Prop {vote.proposalId}:{" "}
+                        <Text
+                          as="span"
+                          color={
+                            vote.vote === "yay"
+                              ? "green.300"
+                              : vote.vote === "nay"
+                                ? "red.300"
+                                : "gray.200"
+                          }
+                          fontWeight="medium"
+                        >
+                          {vote.vote}
+                        </Text>
+                      </Text>
+                    ))
+                  }
+                </VStack>
               </Box>
             )}
-          </Grid>
-        </VStack>
+          </VStack>
+        </HStack>
 
-        <VStack gap={3} align="strech">
+        <VStack gap={3} align="stretch">
           <Heading as="h2" size="lg" color="white">
             Recent Transactions
           </Heading>
